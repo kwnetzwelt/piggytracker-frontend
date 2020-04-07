@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef} from 'react';
+import React, { useState, useEffect, useRef, createRef} from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import Fab from '@material-ui/core/Fab';
 import AddIcon from '@material-ui/icons/Add';
@@ -17,9 +17,21 @@ import DialogContentText from '@material-ui/core/DialogContentText';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import './App.css';
 import axios from 'axios';
-import { Avatar } from '@material-ui/core';
+import Menu from '@material-ui/core/Menu';
+import MenuItem from '@material-ui/core/MenuItem';
+import { Avatar, TextField } from '@material-ui/core';
 import DateFnsUtils from '@date-io/date-fns';
 import {MuiPickersUtilsProvider ,DatePicker} from '@material-ui/pickers';
+import InputAdornment from '@material-ui/core/InputAdornment';
+import AccountCircle from "@material-ui/icons/AccountCircle";
+import MonetizationOnIcon from '@material-ui/icons/MonetizationOn';
+import ScheduleIcon from '@material-ui/icons/Schedule';
+import CheckCircleIcon from '@material-ui/icons/CheckCircle';
+import InfoIcon from '@material-ui/icons/Info';
+
+import MaterialTable from 'material-table';
+
+
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -40,7 +52,7 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 function App() {
-  
+  const apiEndpoint = "http://192.168.0.173:3030";
   const classes = useStyles();
   
   useEffect(() => {
@@ -49,8 +61,46 @@ function App() {
     }
   },[]);
 
+  /* -- data handling --*/
+  const dataTable = createRef();
+  const dataTableDataColumns = [
+      { title: "Date", field: "date", type:"date" },
+      { title: "Value", field: "value",cellStyle:{textAlign:"right"}, render: rowData => rowData.value.toFixed(2) + " €"  },
+      { title: "Remunerator", field: "remunerator" },
+      { title: "Category", field: "category" },
+      { title: "Info", field: "info" }
+    ];
+    //https://material-table.com/#/docs/features/remote-data
+    const dataTableRetrieveBillData = (query) =>
+      new Promise((resolve, reject) => {
+        let url = 'https://reqres.in/api/users?'
+        url += 'per_page=' + query.pageSize
+        url += '&page=' + (query.page + 1)
+        axios({method:"GET",url : apiEndpoint + "/bills",params: {perPage:query.pageSize,page:query.page+1},headers:getAuthHeader()})
+          .then(response => {
+            resolve({
+              data: response.data.data,
+              page: response.data.page - 1,
+              totalCount: response.data.total,
+            })
+          })
+      })
+      const dataTableActions = [
+        {
+          icon: 'refresh',
+          tooltip: 'Refresh Data',
+          isFreeAction: true,
+          onClick: () => dataTable.current && dataTable.current.onQueryChange(),
+        }
+      ]
+
   /* -- add Entry --*/
-  const [entryDate,setEntryDate] = useState(null);
+  const [entryDate,setEntryDate] = useState({value:new Date(),error:null});
+  const [entryValue,setEntryValue] = useState({value:0,error:null});
+  const [entryCategory,setEntryCategory] = useState({value:[],error:null});
+  const [entryRemunerator,setEntryRemunerator] = useState({value:[],error:null});
+  const [entryInfo,setEntryInfo] = useState({value:"",error:null});
+  
   const [IsAddEntryDialogOpen, addEntryDialogOpen] = useState(false); // hidden dialogs
   const showAddEntryDialog = () => {
     addEntryDialogOpen(true);
@@ -60,26 +110,56 @@ function App() {
   }
 
   const submitAddEntryDialog = () => {
+    var entry= 
+    {
+      date : entryDate.value,
+      value : entryValue.value,
+      category:entryCategory.value.toString(),
+      remunerator:entryRemunerator.value.toString(),
+      info:entryInfo.value.toString()
+    }
+    console.log(entry);
+    axios({method:"POST",url : apiEndpoint + "/bill", headers: getAuthHeader(), data:entry}).then( result => {
 
+      hideAddEntryDialog();
+      dataTable.current && dataTable.current.onQueryChange();
+    }).catch(e => {
+      console.error(e);
+    });
   }
-  const handleEntryDateChange = (date) => {
-    setEntryDate(date);
+
+  const ensureMonetaryValue = (v) => {
+    return parseFloat( parseInt(v * 100)) / 100;
   }
   /* -- auth --*/
-  const loginUsername = useRef(null);
-  const loginPassword = useRef(null);
+  //const loginUsername = useRef(null);
+  //const loginPassword = useRef(null);
+  const loginUsernameInput = createRef();
+  const loginPasswordInput = createRef();
+  const [loginUsername,setLoginUsername] = useState({value:"JohnDoe",error:null});
+  const [loginPassword,setLoginPassword] = useState({value:"123456",error:null});
+
   const [userProfile,setUserProfile] = useState(null);
   const [IsLoginDialogOpen, loginDialogOpen] = useState(false); // hidden dialogs
   const [loggedIn, setLoggedIn] = useState(false);
+  const [avatarContextMenuAnchor, setAvatarContextMenuAnchor] = useState(null);
+  const avatarDisplay = createRef();
+  
   const getAuthHeader = () => {
     return {'Authorization' : 'Bearer ' + localStorage.getItem('id_token')};
   }
   const restoreUserProfile = () => {
-    axios({method:"GET",url :"http://192.168.0.173:3000/login", headers: getAuthHeader()}).then( result => {
+    axios({method:"GET",url : apiEndpoint + "/login", headers: getAuthHeader()}).then( result => {
       var receivedUserProfile = transformUserProfile(result.data);
       setUserProfile (receivedUserProfile);
       setLoggedIn(true);
+      
     });
+  }
+  const logout = () => {
+    setUserProfile(null);
+    setLoggedIn(false);
+    storeAuthToken(null);
   }
   const restoreAuthToken = () => {
     var authToken = localStorage.getItem("id_token");
@@ -91,7 +171,10 @@ function App() {
   }
   const storeAuthToken = (token) =>
   {
-    localStorage.setItem("id_token", token);
+    if(token)
+      localStorage.setItem("id_token", token);
+    else
+      localStorage.removeItem("id_token");
   }
   const showLoginDialog = () => {
     loginDialogOpen(true);
@@ -99,7 +182,16 @@ function App() {
   const hideLoginDialog = () => {
     loginDialogOpen(false);
   }
-
+  const showAvatarContextMenu = () => {
+    setAvatarContextMenuAnchor(avatarDisplay.current);
+  }
+  const hideAvatarContextMenu = (event) => {
+    if(event.currentTarget.id === "avatar-context-menu-logout")
+    {
+      logout();
+    }
+    setAvatarContextMenuAnchor(null);
+  }
 
   const transformUserProfile = (profileData) => {
     var initials = profileData.fullname.split(' ');
@@ -111,22 +203,28 @@ function App() {
   }
   const submitLoginDialog = (e) => {
     e.preventDefault();
-    hideLoginDialog();
+    setLoginUsername({value:loginUsername.value,error:null});
+    setLoginPassword({value:loginPassword.value,error:null});
     var body = {
-      username: loginUsername.current.value,
-      password: loginPassword.current.value
-
+      username: loginUsername.value,
+      password: loginPassword.value
     };
     console.log(JSON.stringify(body));
-    axios.post('http://192.168.0.173:3000/login',body
+    axios.post(apiEndpoint + '/login',body
     ).then(result => {
       storeAuthToken(result.data.token);
+      hideLoginDialog();
       // tryout token now to get userProfile and begin using the app
-      restoreUserProfile();
-     
+      restoreUserProfile(); 
     }).catch(error => {
-      alert("failed!");
-      console.error(JSON.stringify(error));
+      console.error(error);
+      if(error.response.data.message === "user not found")
+      {
+        setLoginUsername({value:loginUsername.value,error:"Invalid Username"});
+      }else
+      {
+        setLoginPassword({value:loginPassword.value,error:"Invalid Password"});
+      }
     });
   }
   const restoreLoginState = () => {
@@ -134,7 +232,6 @@ function App() {
     {
       restoreUserProfile();
     }
-    
   }
   return (
     <div className="App">
@@ -149,19 +246,46 @@ function App() {
           {!loggedIn ?
             <Button onClick={showLoginDialog} color="inherit">Login</Button>
             :
-            <Avatar>{userProfile.initials}</Avatar>
+            <Avatar ref={avatarDisplay} aria-controls="avatar-context-menu" aria-haspopup="true" onClick={showAvatarContextMenu}>{userProfile.initials}</Avatar>
           }
         </Toolbar>
       </AppBar>
-      <Fab color="primary" aria-label="add" className={classes.fab} onClick={showAddEntryDialog}>
-        <AddIcon />
-      </Fab>
+      {loggedIn &&
+        <Fab color="primary" aria-label="add" className={classes.fab} onClick={showAddEntryDialog}>
+          <AddIcon />
+        </Fab>
+      }
+        
+{loggedIn &&
+      
+        <MaterialTable 
+        tableRef={dataTable} 
+        columns={dataTableDataColumns} 
+        data={dataTableRetrieveBillData} 
+        title="Entries" 
+        actions={dataTableActions} />
+      }
 
+      {/* AVATAR CONTEXT MENU */}
+      <Menu
+        id="avatar-context-menu"
+        anchorEl={avatarContextMenuAnchor}
+        keepMounted
+        open={Boolean(avatarContextMenuAnchor)}
+        onClose={hideAvatarContextMenu}
+      >
+        {!loggedIn ?
+          <MenuItem id="avatar-context-menu-fullname">ee</MenuItem>
+          :
+          <MenuItem id="avatar-context-menu-fullname">{userProfile.fullname}</MenuItem>
+        }
+        <MenuItem onClick={hideAvatarContextMenu} id="avatar-context-menu-logout">Logout</MenuItem>
+      </Menu>
       {/* ADD ENTRY DIALOG */}
 
 
-      <Dialog open={IsAddEntryDialogOpen} onClose={hideAddEntryDialog} aria-labelledby="form-dialog-title">
-      <DialogTitle id="form-dialog-title">Add Entry</DialogTitle>
+      <Dialog open={IsAddEntryDialogOpen} onClose={hideAddEntryDialog} aria-labelledby="form-dialog-add-entry-title">
+      <DialogTitle id="form-dialog-add-entry-title">Add Entry</DialogTitle>
       <DialogContent>
         <DialogContentText>
           
@@ -173,31 +297,58 @@ function App() {
             variant="inline"
             format="MM/dd/yyyy"
             margin="normal"
-            id="date-picker-inline"
-            label="Date picker inline"
-            value={entryDate}
-            onChange={handleEntryDateChange}
-            KeyboardButtonProps={{
-              'aria-label': 'change date',
+            id="entry-date"
+            label="Date of purchase"
+            value={entryDate.value}
+            onChange={(e) =>setEntryDate({value:e,error:null})}
+            InputProps={{
+              startAdornment: <InputAdornment position="start"><ScheduleIcon /></InputAdornment>,
             }}
+            fullWidth
           />
         </MuiPickersUtilsProvider>
-        <Input
-          autoFocus
-          margin="dense"
-          id="login-username"
-          label="Username"
-          type="text"
+        <TextField id="entry-value"
+          label="Spending"
+          InputProps={{
+            startAdornment: <InputAdornment position="start"><MonetizationOnIcon /></InputAdornment>,
+          }}
           fullWidth
-          inputRef={loginUsername}
+          type="number"
+          value={entryValue.value}
+          onChange={(e) => setEntryValue({value:ensureMonetaryValue(e.target.value),error:null})}
         />
-        <Input inputRef={loginPassword}
-          margin="dense"
-          id="login-password"
-          label="Password"
-          type="password"
+
+        <TextField id="entry-renumerator"
+          label="Remunerator"
+          InputProps={{
+            startAdornment: <InputAdornment position="start"><AccountCircle /></InputAdornment>,
+          }}
           fullWidth
+          value={entryRemunerator.value}
+          onChange={(e) => setEntryRemunerator({value:e.target.value,error:null})}
         />
+          <TextField id="entry-category"
+            label="Category"
+            InputProps={{
+              startAdornment: <InputAdornment position="start"><CheckCircleIcon /></InputAdornment>,
+            }}
+            fullWidth
+            value={entryCategory.value}
+            onChange={(e) => setEntryCategory({value:e.target.value,error:null})}
+          />
+        
+
+        <TextField id="entry-info"
+            label="Info"
+            InputProps={{
+              startAdornment: <InputAdornment position="start"><InfoIcon /></InputAdornment>,
+            }}
+            fullWidth
+            multiline
+            value={entryInfo.value}
+            onChange={(e) => setEntryInfo({value:e.target.value,error:null})}
+          />
+
       </DialogContent>
       <DialogActions>
         <Button onClick={hideAddEntryDialog} color="primary">
@@ -211,14 +362,16 @@ function App() {
 
       {/* LOGIN DIALOG */}
       <Dialog open={IsLoginDialogOpen} onClose={hideLoginDialog} aria-labelledby="form-dialog-title">
+      <form className={classes.root} noValidate>
+    
       <DialogTitle id="form-dialog-title">Login</DialogTitle>
       <DialogContent>
         <DialogContentText>
           
         </DialogContentText>
+        {/*
         <Input
           autoFocus
-          margin="dense"
           id="login-username"
           label="Username"
           type="text"
@@ -226,10 +379,32 @@ function App() {
           inputRef={loginUsername}
         />
         <Input inputRef={loginPassword}
-          margin="dense"
           id="login-password"
           label="Password"
           type="password"
+          fullWidth
+        />*/}
+        
+        <TextField
+          id="login-username"
+          label="Username"
+          type="text"
+          autoComplete="current-username"
+          onChange={(e) =>{setLoginUsername({value:e.target.value,error:null});}}
+          ref={loginUsernameInput}
+          error={loginUsername.error}
+          helperText={loginUsername.error}
+          fullWidth
+        />
+        <TextField
+          id="login-password"
+          label="Password"
+          type="password"
+          autoComplete="current-password"
+          onChange={(e) => {setLoginPassword({value:e.target.value,error:null});}}
+          ref={loginPasswordInput}
+          error={loginPassword.error}
+          helperText={loginPassword.error}
           fullWidth
         />
       </DialogContent>
@@ -241,7 +416,9 @@ function App() {
           Login
         </Button>
       </DialogActions>
+      </form>
       </Dialog>
+      
     </div>
     
 
