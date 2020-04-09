@@ -28,23 +28,26 @@ import MonetizationOnIcon from '@material-ui/icons/MonetizationOn';
 import ScheduleIcon from '@material-ui/icons/Schedule';
 import CheckCircleIcon from '@material-ui/icons/CheckCircle';
 import InfoIcon from '@material-ui/icons/Info';
-
-import MaterialTable from 'material-table';
-
-
-
+import MuiVirtualizedTable from 'mui-virtualized-table';
+import {AutoSizer} from 'react-virtualized';
 const useStyles = makeStyles((theme) => ({
   root: {
     flexGrow: 1,
+  },
+  appBar: {
+    position: 'sticky'
+  },
+  table : {
+    top: theme.spacing(10),
   },
   menuButton: {
     marginRight: theme.spacing(2),
   },
   
   fab: {
-    position: 'absolute',
+    position: 'fixed',
     bottom: theme.spacing(2),
-    right: theme.spacing(2),
+    right: theme.spacing(2)
   },
   title: {
     flexGrow: 1,
@@ -52,7 +55,7 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 function App() {
-  const apiEndpoint = "http://192.168.0.173:3030";
+  const apiEndpoint = "http://192.168.0.130:3030";
   const classes = useStyles();
   
   useEffect(() => {
@@ -62,14 +65,15 @@ function App() {
   },[]);
 
   /* -- data handling --*/
-  const dataTable = createRef();
   const dataTableDataColumns = [
-      { title: "Date", field: "date", type:"date" },
-      { title: "Value", field: "value",cellStyle:{textAlign:"right"}, render: rowData => rowData.value.toFixed(2) + " €"  },
-      { title: "Remunerator", field: "remunerator" },
-      { title: "Category", field: "category" },
-      { title: "Info", field: "info" }
+      {  header: "Date",        name: "date"        },
+      {  header: "Value",       name: "value"       },
+      {  header: "Remunerator", name: "remunerator" },
+      {  header: "Category",    name: "category"    },
+      {  header: "Info",        name: "info"        }
     ];
+  /*const dataTable = createRef();
+  const [dataTableFilter,setDataTableFilter] = useState(false);
     //https://material-table.com/#/docs/features/remote-data
     const dataTableRetrieveBillData = (query) =>
       new Promise((resolve, reject) => {
@@ -87,13 +91,20 @@ function App() {
       })
       const dataTableActions = [
         {
+          icon: FilterListIcon,
+          tooltip: 'Filter Data',
+          isFreeAction: true,
+          onClick: () => setDataTableFilter(!dataTableFilter)
+        },
+        {
           icon: 'refresh',
           tooltip: 'Refresh Data',
           isFreeAction: true,
           onClick: () => dataTable.current && dataTable.current.onQueryChange(),
         }
       ]
-
+*/
+  const [dataEntries,setDataEntries] = useState([]);
   /* -- add Entry --*/
   const [entryDate,setEntryDate] = useState({value:new Date(),error:null});
   const [entryValue,setEntryValue] = useState({value:0,error:null});
@@ -122,7 +133,7 @@ function App() {
     axios({method:"POST",url : apiEndpoint + "/bill", headers: getAuthHeader(), data:entry}).then( result => {
 
       hideAddEntryDialog();
-      dataTable.current && dataTable.current.onQueryChange();
+      //dataTable.current && dataTable.current.onQueryChange();
     }).catch(e => {
       console.error(e);
     });
@@ -153,9 +164,34 @@ function App() {
       var receivedUserProfile = transformUserProfile(result.data);
       setUserProfile (receivedUserProfile);
       setLoggedIn(true);
-      
+
+      fetchAllData(250,0); // fetch 15 at a time
     });
   }
+
+  const tempInsertData = [];
+  const fetchAllData = (pageSize,page) => {
+    axios({method:"GET",url : apiEndpoint + "/bills",params: {perPage:pageSize,page:page+1}, headers: getAuthHeader()}).then( result => {
+      var data = result.data.data;
+      var total = result.data.total;
+
+      for (let index = 0; index < data.length; index++) {
+        const element = data[index];
+        tempInsertData.push(element);
+      }
+      console.log(dataEntries.length);
+      if(total > (page * pageSize + data.length))
+      {
+        setTimeout(fetchAllData, 1,pageSize, page+1);
+      }else
+      {
+        console.log("done");
+        
+        setDataEntries(entries => tempInsertData);
+      }
+    });
+  }
+
   const logout = () => {
     setUserProfile(null);
     setLoggedIn(false);
@@ -235,7 +271,7 @@ function App() {
   }
   return (
     <div className="App">
-      <AppBar position="static">
+      <AppBar position="static" className={classes.appBar}>
         <Toolbar>
           <IconButton edge="start" className={classes.menuButton} color="inherit" aria-label="menu">
             <MenuIcon />
@@ -250,22 +286,8 @@ function App() {
           }
         </Toolbar>
       </AppBar>
-      {loggedIn &&
-        <Fab color="primary" aria-label="add" className={classes.fab} onClick={showAddEntryDialog}>
-          <AddIcon />
-        </Fab>
-      }
-        
-{loggedIn &&
       
-        <MaterialTable 
-        tableRef={dataTable} 
-        columns={dataTableDataColumns} 
-        data={dataTableRetrieveBillData} 
-        title="Entries" 
-        actions={dataTableActions} />
-      }
-
+    
       {/* AVATAR CONTEXT MENU */}
       <Menu
         id="avatar-context-menu"
@@ -418,7 +440,36 @@ function App() {
       </DialogActions>
       </form>
       </Dialog>
-      
+              
+      {loggedIn &&
+
+      <div style={{ height: 'calc(100vh)' }}>
+        <AutoSizer>
+          {({height, width}) => (
+
+            <MuiVirtualizedTable className={classes.table}
+            width={width}
+            height={height}
+            fixedRowCount={1}
+            columns={dataTableDataColumns}
+            rowHeight={56}
+            data={dataEntries}
+            includeHeaders={true}
+            fixedRowCount={1}
+            >
+            </MuiVirtualizedTable>
+          )}
+        </AutoSizer>
+      </div>
+      }
+
+ 
+      {loggedIn &&
+        <Fab color="primary" aria-label="add" className={classes.fab} onClick={showAddEntryDialog}>
+          <AddIcon />
+        </Fab>
+      }
+
     </div>
     
 
