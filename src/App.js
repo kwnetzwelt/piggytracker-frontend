@@ -81,11 +81,11 @@ function App() {
   const handleChange = (event, newValue) => {
     setValue(newValue);
   };
-
+  const dateTimeFormat = Intl.DateTimeFormat(Config.locale,Config.dateTimeFormat);
   /* -- data handling --*/
   const dataTableDataColumns = [
-      {  header: "Date",        name: "date"        },
-      {  header: "Value",       name: "value"       },
+      {  header: "Date", name:"date",  cell:(row) => dateTimeFormat.format(new Date(row.date))},
+      {  header: "Value", name:"value", alignItems: "right",      cell:(row) => Config.toCurrencyValue(row.value)} ,
       {  header: "Remunerator", name: "remunerator" },
       {  header: "Category",    name: "category"    },
       {  header: "Info",        name: "info"        }

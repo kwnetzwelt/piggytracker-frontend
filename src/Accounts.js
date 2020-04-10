@@ -71,7 +71,7 @@ class Accounts {
 
         found = false;
         this.categoryTotals.forEach(total =>{
-            if(total.category == entry.category)
+            if(total.category === entry.category)
             {
                 total.value += entry.value;
                 found = true;
@@ -86,7 +86,7 @@ class Accounts {
         var date = new Date(entry.date);
         var monthOfEntry=date.getYear() * 12 + date.getMonth(); 
         this.categoryMonths.forEach(categoryMonth =>{
-            if(categoryMonth.month == monthOfEntry)
+            if(categoryMonth.month === monthOfEntry)
             {
                 categoryMonth.addEntry(entry);
                 found = true;
