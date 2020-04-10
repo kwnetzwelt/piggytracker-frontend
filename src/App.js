@@ -32,6 +32,9 @@ import AccountBalanceIcon from '@material-ui/icons/AccountBalance';
 
 import MuiVirtualizedTable from 'mui-virtualized-table';
 import {AutoSizer} from 'react-virtualized';
+import Config from './Config.js';
+import Accounts from './Accounts.js';
+
 const useStyles = makeStyles((theme) => ({
   root: {
     flexGrow: 1,
@@ -62,7 +65,7 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 function App() {
-  const apiEndpoint = "http://192.168.0.130:3030";
+  const apiEndpoint = Config.apiEndpoint;
   const classes = useStyles();
   
   useEffect(() => {
@@ -89,6 +92,15 @@ function App() {
     ];
   
   const [dataEntries,setDataEntries] = useState([]);
+  const [accountValues,setAccountValues] = useState(new Accounts);
+  const updateAccounts = (entries) => {
+    const newAccountValues = new Accounts();
+    entries.forEach(element => {
+      newAccountValues.addEntry(element);
+    });
+    setAccountValues(newAccountValues);
+    console.log(newAccountValues);
+  }
   /* -- add Entry --*/
   const [entryDate,setEntryDate] = useState({value:new Date(),error:null});
   const [entryValue,setEntryValue] = useState({value:0,error:null});
@@ -137,6 +149,8 @@ function App() {
   const [userProfile,setUserProfile] = useState(null);
   const [IsLoginDialogOpen, loginDialogOpen] = useState(false); // hidden dialogs
   const [loggedIn, setLoggedIn] = useState(false);
+  const views = ["entries","accounts"];
+  const [currentView, setCurrentView] = useState("entries");
   const [avatarContextMenuAnchor, setAvatarContextMenuAnchor] = useState(null);
   const avatarDisplay = createRef();
   
@@ -172,6 +186,7 @@ function App() {
         console.log("done");
         
         setDataEntries(entries => tempInsertData);
+        updateAccounts(tempInsertData);
       }
     });
   }
@@ -425,34 +440,39 @@ function App() {
       </form>
       </Dialog>
               
-      {loggedIn &&
+      {loggedIn && (currentView === "entries") && 
+        <div style={{ height: 'calc(90vh)' }}>
+          <AutoSizer>
+            {({height, width}) => (
 
-      <div style={{ height: 'calc(90vh)' }}>
-        <AutoSizer>
-          {({height, width}) => (
+              <MuiVirtualizedTable className={classes.table}
+              width={width}
+              height={height}
+              fixedRowCount={1}
+              columns={dataTableDataColumns}
+              rowHeight={56}
+              data={dataEntries}
+              includeHeaders={true}
+              >
+              </MuiVirtualizedTable>
+            )}
+          </AutoSizer>
+    
+        </div>
+      }
+      {loggedIn && (currentView === "accounts") && 
+       
+        <div style={{ height: 'calc(90vh)' }}>
 
-            <MuiVirtualizedTable className={classes.table}
-            width={width}
-            height={height}
-            fixedRowCount={1}
-            columns={dataTableDataColumns}
-            rowHeight={56}
-            data={dataEntries}
-            includeHeaders={true}
-            >
-            </MuiVirtualizedTable>
-          )}
-        </AutoSizer>
-   
-      </div>
+        </div>
+      }
       
-
-}
       
 <BottomNavigation
   value={value}
   onChange={(event, newValue) => {
     setValue(newValue);
+    setCurrentView(views[newValue]);
   }}
   showLabels
   className={classes.bottomNavigation}
