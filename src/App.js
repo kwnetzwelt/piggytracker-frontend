@@ -37,7 +37,9 @@ const useStyles = makeStyles((theme) => ({
     flexGrow: 1,
   },
   bottomNavigation: {
-    position:'sticky'
+    width: '100%',
+  position: 'fixed',
+  bottom: 0,
   },
   appBar: {
     position: 'sticky'
@@ -437,7 +439,6 @@ function App() {
             rowHeight={56}
             data={dataEntries}
             includeHeaders={true}
-            fixedRowCount={1}
             >
             </MuiVirtualizedTable>
           )}
