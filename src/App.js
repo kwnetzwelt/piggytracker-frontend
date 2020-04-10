@@ -8,8 +8,6 @@ import Typography from '@material-ui/core/Typography';
 import Button from '@material-ui/core/Button';
 import IconButton from '@material-ui/core/IconButton';
 import MenuIcon from '@material-ui/icons/Menu';
-import Input from '@material-ui/core/Input';
-//import TextField from '@material-ui/core/TextField';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
@@ -20,6 +18,7 @@ import axios from 'axios';
 import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
 import { Avatar, TextField } from '@material-ui/core';
+import {BottomNavigation, BottomNavigationAction} from '@material-ui/core';
 import DateFnsUtils from '@date-io/date-fns';
 import {MuiPickersUtilsProvider ,DatePicker} from '@material-ui/pickers';
 import InputAdornment from '@material-ui/core/InputAdornment';
@@ -28,17 +27,23 @@ import MonetizationOnIcon from '@material-ui/icons/MonetizationOn';
 import ScheduleIcon from '@material-ui/icons/Schedule';
 import CheckCircleIcon from '@material-ui/icons/CheckCircle';
 import InfoIcon from '@material-ui/icons/Info';
+import ReceiptIcon from '@material-ui/icons/Receipt';
+import AccountBalanceIcon from '@material-ui/icons/AccountBalance';
+
 import MuiVirtualizedTable from 'mui-virtualized-table';
 import {AutoSizer} from 'react-virtualized';
 const useStyles = makeStyles((theme) => ({
   root: {
     flexGrow: 1,
   },
+  bottomNavigation: {
+    position:'sticky'
+  },
   appBar: {
     position: 'sticky'
   },
   table : {
-    top: theme.spacing(10),
+    
   },
   menuButton: {
     marginRight: theme.spacing(2),
@@ -46,7 +51,7 @@ const useStyles = makeStyles((theme) => ({
   
   fab: {
     position: 'fixed',
-    bottom: theme.spacing(2),
+    bottom: theme.spacing(11),
     right: theme.spacing(2)
   },
   title: {
@@ -64,6 +69,14 @@ function App() {
     }
   },[]);
 
+  /* -- bottom navigation --*/
+  
+  const [value, setValue] = React.useState('recents');
+
+  const handleChange = (event, newValue) => {
+    setValue(newValue);
+  };
+
   /* -- data handling --*/
   const dataTableDataColumns = [
       {  header: "Date",        name: "date"        },
@@ -72,38 +85,7 @@ function App() {
       {  header: "Category",    name: "category"    },
       {  header: "Info",        name: "info"        }
     ];
-  /*const dataTable = createRef();
-  const [dataTableFilter,setDataTableFilter] = useState(false);
-    //https://material-table.com/#/docs/features/remote-data
-    const dataTableRetrieveBillData = (query) =>
-      new Promise((resolve, reject) => {
-        let url = 'https://reqres.in/api/users?'
-        url += 'per_page=' + query.pageSize
-        url += '&page=' + (query.page + 1)
-        axios({method:"GET",url : apiEndpoint + "/bills",params: {perPage:query.pageSize,page:query.page+1},headers:getAuthHeader()})
-          .then(response => {
-            resolve({
-              data: response.data.data,
-              page: response.data.page - 1,
-              totalCount: response.data.total,
-            })
-          })
-      })
-      const dataTableActions = [
-        {
-          icon: FilterListIcon,
-          tooltip: 'Filter Data',
-          isFreeAction: true,
-          onClick: () => setDataTableFilter(!dataTableFilter)
-        },
-        {
-          icon: 'refresh',
-          tooltip: 'Refresh Data',
-          isFreeAction: true,
-          onClick: () => dataTable.current && dataTable.current.onQueryChange(),
-        }
-      ]
-*/
+  
   const [dataEntries,setDataEntries] = useState([]);
   /* -- add Entry --*/
   const [entryDate,setEntryDate] = useState({value:new Date(),error:null});
@@ -443,7 +425,7 @@ function App() {
               
       {loggedIn &&
 
-      <div style={{ height: 'calc(100vh)' }}>
+      <div style={{ height: 'calc(90vh)' }}>
         <AutoSizer>
           {({height, width}) => (
 
@@ -460,10 +442,26 @@ function App() {
             </MuiVirtualizedTable>
           )}
         </AutoSizer>
+   
       </div>
-      }
+      
 
- 
+}
+      
+<BottomNavigation
+  value={value}
+  onChange={(event, newValue) => {
+    setValue(newValue);
+  }}
+  showLabels
+  className={classes.bottomNavigation}
+>
+
+
+
+  <BottomNavigationAction label="Entries" icon={<ReceiptIcon />} />
+  <BottomNavigationAction label="Accounts" icon={<AccountBalanceIcon />} />
+</BottomNavigation>
       {loggedIn &&
         <Fab color="primary" aria-label="add" className={classes.fab} onClick={showAddEntryDialog}>
           <AddIcon />
