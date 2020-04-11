@@ -18,8 +18,19 @@ class MonthCategories {
     constructor(month){
         this.month = month;
         this.totals = [];
-    };
+        this.year = Math.floor(this.month /12);
+        this.actualMonth = this.month % 12;
+        this.percentMoney = 0;
 
+    };
+    getValueInCategory(category)
+    {
+        let total = this.totals.find(e => e.category == category);
+        if(total)
+            return total.value;
+        return 0;
+    }
+    
     addEntry (entry){
         var found = false;
         this.totals.forEach(element => {
@@ -30,20 +41,57 @@ class MonthCategories {
         });
         if(!found)
             this.totals.push(new CategoryAccount(entry.category,entry.value));
+    };
+}
+
+
+class Target {
+    constructor(obj){
+        
+        this.category = obj.category;
+        this.month = obj.month;
+        this.tid = obj.tid;
+        this.value = obj.value;
     }
 }
+
 class Accounts {
-    constructor(){
+    constructor(targets){
+        /**
+         * @property {Target[]}
+         */
+        this.targets = [];
+        if(targets)
+        {
+            for (let index = 0; index < targets.length; index++) {
+                const element = targets[index];
+                this.targets.push(new Target(element));
+            }
+        }
+
         this.remuneratorSpendings = {};
         /**
          * @property {CategoryAccount[]}
          */
         this.categoryTotals = [];
         /**
-         * @property {MonthCategories[]}
+         * @property {MonthCategories []}
          */
         this.categoryMonths = [];
 
+    }
+    /**
+     * 
+     * @param {Number} month 
+     * @param {String} category 
+     */
+    getTargetValue(month, category) {
+        for (let index = 0; index < this.targets.length; index++) {
+            const element = this.targets[index];
+            if(element.month === month && element.category === category)
+                return element.value;
+        }
+        return 0;
     }
     get spendings() {
         return this.remuneratorSpendings;
@@ -60,7 +108,16 @@ class Accounts {
     get months(){
         return this.categoryMonths;
     }
-
+    getTargetsForEditing (month) {
+        var catMonth = this.categoryMonths.find((e) => e.month == month);
+        var categories = [];
+        for (let index = 0; index < this.categories.length; index++) {
+            const element = this.categories[index];
+            const ca = new CategoryAccount(element.category, catMonth.getValueInCategory(element.category));
+            categories.push(ca);
+        }
+        return categories;
+    }
     addEntry (entry) {
       var found = false;
       
@@ -84,7 +141,7 @@ class Accounts {
         found = false;
         
         var date = new Date(entry.date);
-        var monthOfEntry=date.getYear() * 12 + date.getMonth(); 
+        var monthOfEntry=date.getFullYear() * 12 + date.getMonth(); 
         this.categoryMonths.forEach(categoryMonth =>{
             if(categoryMonth.month === monthOfEntry)
             {

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, createRef} from 'react';
-import { makeStyles } from '@material-ui/core/styles';
+import { makeStyles,withStyles,lighten } from '@material-ui/core/styles';
 import Fab from '@material-ui/core/Fab';
 import AddIcon from '@material-ui/icons/Add';
 import AppBar from '@material-ui/core/AppBar';
@@ -17,7 +17,7 @@ import './App.css';
 import axios from 'axios';
 import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
-import { Avatar, TextField } from '@material-ui/core';
+import { Avatar, TextField, Card, CardContent, CardHeader } from '@material-ui/core';
 import {BottomNavigation, BottomNavigationAction} from '@material-ui/core';
 import DateFnsUtils from '@date-io/date-fns';
 import {MuiPickersUtilsProvider ,DatePicker} from '@material-ui/pickers';
@@ -29,11 +29,34 @@ import CheckCircleIcon from '@material-ui/icons/CheckCircle';
 import InfoIcon from '@material-ui/icons/Info';
 import ReceiptIcon from '@material-ui/icons/Receipt';
 import AccountBalanceIcon from '@material-ui/icons/AccountBalance';
+import MoreVertIcon from '@material-ui/icons/MoreVert';
 
 import MuiVirtualizedTable from 'mui-virtualized-table';
 import {AutoSizer} from 'react-virtualized';
 import Config from './Config.js';
 import Accounts from './Accounts.js';
+import Grid from '@material-ui/core/Grid';
+import LinearProgress from '@material-ui/core/LinearProgress';
+
+
+import Table from '@material-ui/core/Table';
+import TableBody from '@material-ui/core/TableBody';
+import TableCell from '@material-ui/core/TableCell';
+import TableContainer from '@material-ui/core/TableContainer';
+import TableHead from '@material-ui/core/TableHead';
+import TableRow from '@material-ui/core/TableRow';
+
+
+const BorderLinearProgress = withStyles({
+  root: {
+    height: 10,
+    backgroundColor: lighten('#ff6c5c', 0.5),
+  },
+  bar: {
+    borderRadius: 20,
+    backgroundColor: '#ff6c5c',
+  },
+})(LinearProgress);
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -62,6 +85,9 @@ const useStyles = makeStyles((theme) => ({
   title: {
     flexGrow: 1,
   },
+  accountsGrid : {
+    flexGrow: 1
+  }
 }));
 
 function App() {
@@ -82,6 +108,42 @@ function App() {
     setValue(newValue);
   };
   const dateTimeFormat = Intl.DateTimeFormat(Config.locale,Config.dateTimeFormat);
+  const dateTimeFormatMonthName = Intl.DateTimeFormat(Config.locale,Config.dateTimeFormatMonthName);
+
+  /* -- accounts view --*/
+  const [catMonthOptionsMenuTarget, setCatMonthOptionsMenuTarget] = React.useState(null);
+  const [catMonthOptionsMenuEntry, setCatMonthOptionsMenuEntry] = React.useState(null);
+  const [IsMonthTargetsDialogOpen, monthTargetsDialogOpen] = useState(false); // hidden dialogs
+  const [catMonthTargets, setCatMonthTargets] = useState([]);
+
+  const catMonthOptionsMenuToggle = (event,tid) => {
+    
+    setCatMonthOptionsMenuEntry(tid);
+    setCatMonthOptionsMenuTarget(event.currentTarget);
+
+    const targets = accountValues.getTargetsForEditing(tid.month);
+
+    setCatMonthTargets(targets);
+  };
+
+  const catMonthOptionsMenuHandleClose = () => {
+    setCatMonthOptionsMenuTarget(null);
+  };
+  const catMonthOptionsMenuHandleClick = (e) => {
+    showMonthTargetsDialog();
+  }
+
+  const showMonthTargetsDialog = () => {
+    monthTargetsDialogOpen(true);
+  }
+  const hideMonthTargetsDialog = () => {
+    monthTargetsDialogOpen(false);
+    setCatMonthOptionsMenuTarget(null);
+  }
+
+  const submitMonthTargetsDialog = () => {
+    hideMonthTargetsDialog();
+  }
   /* -- data handling --*/
   const dataTableDataColumns = [
       {  header: "Date", name:"date",  cell:(row) => dateTimeFormat.format(new Date(row.date))},
@@ -93,8 +155,8 @@ function App() {
   
   const [dataEntries,setDataEntries] = useState([]);
   const [accountValues,setAccountValues] = useState(new Accounts);
-  const updateAccounts = (entries) => {
-    const newAccountValues = new Accounts();
+  const updateAccounts = (entries,targets) => {
+    const newAccountValues = new Accounts(targets);
     entries.forEach(element => {
       newAccountValues.addEntry(element);
     });
@@ -169,26 +231,29 @@ function App() {
 
   const tempInsertData = [];
   const fetchAllData = (pageSize,page) => {
-    axios({method:"GET",url : apiEndpoint + "/bills",params: {perPage:pageSize,page:page+1}, headers: getAuthHeader()}).then( result => {
-      var data = result.data.data;
-      var total = result.data.total;
+      axios({method:"GET",url : apiEndpoint + "/targets", headers:getAuthHeader()}).then( targetsResults => {
+        var targetsData = targetsResults.data.data;
+        axios({method:"GET",url : apiEndpoint + "/bills",params: {perPage:pageSize,page:page+1}, headers: getAuthHeader()}).then( result => {
+          var data = result.data.data;
+          var total = result.data.total;
 
-      for (let index = 0; index < data.length; index++) {
-        const element = data[index];
-        tempInsertData.push(element);
-      }
-      console.log(dataEntries.length);
-      if(total > (page * pageSize + data.length))
-      {
-        setTimeout(fetchAllData, 1,pageSize, page+1);
-      }else
-      {
-        console.log("done");
-        
-        setDataEntries(entries => tempInsertData);
-        updateAccounts(tempInsertData);
-      }
-    });
+          for (let index = 0; index < data.length; index++) {
+            const element = data[index];
+            tempInsertData.push(element);
+          }
+          console.log(dataEntries.length);
+          if(total > (page * pageSize + data.length))
+          {
+            setTimeout(fetchAllData, 1,pageSize, page+1);
+          }else
+          {
+            console.log("done");
+            
+            setDataEntries(entries => tempInsertData);
+            updateAccounts(tempInsertData,targetsData);
+          }
+        });
+      });
   }
 
   const logout = () => {
@@ -302,6 +367,26 @@ function App() {
         }
         <MenuItem onClick={hideAvatarContextMenu} id="avatar-context-menu-logout">Logout</MenuItem>
       </Menu>
+
+      {/* MONTHLY TARGET DIALOG */}
+      <Dialog open={IsMonthTargetsDialogOpen} onClose={hideMonthTargetsDialog} aria-labelledby="form-dialog-add-entry-title">
+      <DialogTitle id="form-dialog-add-entry-title">Monthly Target for {catMonthOptionsMenuEntry ? dateTimeFormatMonthName.format(new Date(catMonthOptionsMenuEntry.year,catMonthOptionsMenuEntry.actualMonth,1)) : ""}</DialogTitle>
+      <DialogContent>
+        {catMonthTargets.map(catTotal =>
+          <p>{catTotal.category}-{catTotal.value}
+          </p>
+        )}
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={hideMonthTargetsDialog} color="primary">
+          Cancel
+        </Button>
+        <Button variant="contained" onClick={submitMonthTargetsDialog} color="primary" disableElevation>
+          Add
+        </Button>
+      </DialogActions>
+      </Dialog>
+
       {/* ADD ENTRY DIALOG */}
 
 
@@ -390,21 +475,7 @@ function App() {
         <DialogContentText>
           
         </DialogContentText>
-        {/*
-        <Input
-          autoFocus
-          id="login-username"
-          label="Username"
-          type="text"
-          fullWidth
-          inputRef={loginUsername}
-        />
-        <Input inputRef={loginPassword}
-          id="login-password"
-          label="Password"
-          type="password"
-          fullWidth
-        />*/}
+        
         
         <TextField
           id="login-username"
@@ -462,8 +533,55 @@ function App() {
       }
       {loggedIn && (currentView === "accounts") && 
        
-        <div style={{ height: 'calc(90vh)' }}>
+        <div style={{ height: 'calc(90vh)',paddingLeft: 20, paddingRight: 20,paddingTop: 20 }}>
+          
+                <Menu
+                  id="Month-Options-Menu"
+                  anchorEl={catMonthOptionsMenuTarget}
+                  keepMounted
+                  open={Boolean(catMonthOptionsMenuTarget)}
+                  onClose={catMonthOptionsMenuHandleClose}
+                >
+                  <MenuItem onClick={e => catMonthOptionsMenuHandleClick("targets")}>Targets</MenuItem>
+                </Menu>
 
+              <Grid container justify="center" spacing={1} className={classes.accountsGrid}>
+                    {accountValues.categoryMonths.map((catMonth) => 
+                <Grid key={catMonth.month} item  xs>
+                  <Card className={classes.root}>
+                  
+                    <CardHeader title={dateTimeFormatMonthName.format(new Date(catMonth.year,catMonth.actualMonth,1))}
+                      action={
+                        <IconButton aria-label="settings" onClick={e => catMonthOptionsMenuToggle(e,catMonth)}>
+                          <MoreVertIcon />
+                        </IconButton>
+                      }
+                    >
+                    </CardHeader>
+                    <CardContent align="left">
+                      
+                      <Typography gutterBottom variant="subtitle1">
+                        <span>Percent of Money spent vs. Percent of Month: </span>
+                        <span justify="flex-end">12% - 50%</span>
+                      </Typography>
+                      <LinearProgress variant="determinate" name="moneySpent" value={50} />
+                      <LinearProgress variant="determinate" name="monthPast" value={55} />
+                      <Table className={classes.table} aria-label="simple table">
+                        <TableBody>
+                        {catMonth.totals.map((entry) =>
+                          <TableRow key={entry.category}>
+                            <TableCell>{entry.category}</TableCell>
+                            <TableCell align="right">{entry.value}</TableCell>
+                            <TableCell align="right">{accountValues.getTargetValue(catMonth.month, entry.category)}</TableCell>
+                          </TableRow>
+                        )}
+                        </TableBody>
+                      </Table>
+                    </CardContent>
+                  </Card>
+                </Grid>
+                    )}
+          </Grid>
         </div>
       }
       
