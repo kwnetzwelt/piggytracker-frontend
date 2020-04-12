@@ -50,6 +50,10 @@ export class Target {
     constructor(obj){
         this._id = obj._id ? obj._id : undefined;
         this.totals = obj.totals ? obj.totals : [];
+        for (let index = 0; index < this.totals.length; index++) {
+            this.totals[index].value = parseFloat(this.totals[index].value);
+        }
+
         this.tid = parseInt(obj.tid ? obj.tid : 0);
         /**
          * @readonly
@@ -86,6 +90,10 @@ export class Accounts {
          */
         this.categoryMonths = [];
 
+    }
+    getTargetStatus(tid, category,comparingValue){
+        let value = this.getTargetValue(tid,category);
+        return value <= comparingValue ? "CRIT" : "OK";
     }
     /**
      * 

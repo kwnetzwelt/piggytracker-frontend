@@ -65,7 +65,10 @@ const useStyles = makeStyles((theme) => ({
   root: {
     flexGrow: 1,
   },
-  
+  critical: {
+    color:'red',
+    fontWeight:'bold'
+  },
   wrapper: {
     margin: theme.spacing(1),
     position: 'relative',
@@ -628,8 +631,8 @@ function App() {
                         {catMonth.totals.map((entry) =>
                           <TableRow key={entry.category}>
                             <TableCell>{entry.category}</TableCell>
-                            <TableCell align="right">{entry.value}</TableCell>
-                            <TableCell align="right">{accountValues.getTargetValue(catMonth.tid, entry.category)}</TableCell>
+                            <TableCell className={accountValues.getTargetStatus(catMonth.tid, entry.category,entry.value) == "CRIT" ? classes.critical:classes.root} align="right">{Config.toCurrencyValue(entry.value)}</TableCell>
+                            <TableCell align="right">{Config.toCurrencyValue(accountValues.getTargetValue(catMonth.tid, entry.category))}</TableCell>
                           </TableRow>
                         )}
                         </TableBody>
