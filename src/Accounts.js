@@ -1,4 +1,4 @@
-class CategoryAccount{
+export class CategoryAccount{
     /**
      * 
      * @param {string} categoryName name for this category
@@ -8,24 +8,25 @@ class CategoryAccount{
     {
         this.category = categoryName;
         this.value = initialValue;
+        this.id = categoryName+""+new Date().getTime();
     }
 }
-class MonthCategories {
+export class MonthCategories {
     /**
      * 
-     * @param {int} month the month this collection represents
+     * @param {int} tid the month this collection represents
      */
-    constructor(month){
-        this.month = month;
+    constructor(tid){
+        this.tid = tid;
+        this.month = this.tid % 12;
         this.totals = [];
-        this.year = Math.floor(this.month /12);
-        this.actualMonth = this.month % 12;
+        this.year = Math.floor(this.tid /12);
         this.percentMoney = 0;
 
     };
     getValueInCategory(category)
     {
-        let total = this.totals.find(e => e.category == category);
+        let total = this.totals.find(e => e.category === category);
         if(total)
             return total.value;
         return 0;
@@ -45,17 +46,23 @@ class MonthCategories {
 }
 
 
-class Target {
+export class Target {
     constructor(obj){
-        
-        this.category = obj.category;
-        this.month = obj.month;
-        this.tid = obj.tid;
-        this.value = obj.value;
+        this._id = obj._id ? obj._id : undefined;
+        this.totals = obj.totals ? obj.totals : [];
+        this.tid = parseInt(obj.tid ? obj.tid : 0);
+        /**
+         * @readonly
+         */
+        this.month = obj.tid % 12;
+        /**
+         * @readonly
+         */
+        this.year = Math.floor(obj.tid / 12);
     }
 }
 
-class Accounts {
+export class Accounts {
     constructor(targets){
         /**
          * @property {Target[]}
@@ -85,11 +92,15 @@ class Accounts {
      * @param {Number} month 
      * @param {String} category 
      */
-    getTargetValue(month, category) {
+    getTargetValue(tid, category) {
         for (let index = 0; index < this.targets.length; index++) {
             const element = this.targets[index];
-            if(element.month === month && element.category === category)
-                return element.value;
+            if(element.tid === tid){
+                var target = element.totals.find((e) => e.category === category);
+                if(target)
+                    return target.value;
+                return 0;
+            }
         }
         return 0;
     }
@@ -108,15 +119,37 @@ class Accounts {
     get months(){
         return this.categoryMonths;
     }
-    getTargetsForEditing (month) {
-        var catMonth = this.categoryMonths.find((e) => e.month == month);
-        var categories = [];
+    
+    //const updatedTargetData = accountValues.setTargets(monthTargetsObject.tid,catMonthTargets);
+    setTargets(tid, catMonthTargets) {
+        var targetIndex = this.targets.findIndex((e) => e.tid === tid);
+        var targetToEdit = {tid:tid, totals:[...catMonthTargets]};
+        if(targetIndex != -1)
+        {
+            targetToEdit = this.targets.splice(targetIndex,1)[0];
+            targetToEdit.totals = [...catMonthTargets];
+        }
+        var newTarget = new Target(targetToEdit);
+        this.targets.push(newTarget);
+        return targetToEdit;
+    }
+    getTargetForEditing (tid) {
+        var target = this.targets.find((e) => e.tid === tid);
+        var targetToEdit = {tid:tid,totals:[]};
+
+        if(target)
+            targetToEdit = target;
+        
+        // ensure all categories are present
         for (let index = 0; index < this.categories.length; index++) {
             const element = this.categories[index];
-            const ca = new CategoryAccount(element.category, catMonth.getValueInCategory(element.category));
-            categories.push(ca);
+            const hasValueForCategory = targetToEdit.totals.find((e) => e.category == element.category);
+            if(!hasValueForCategory)
+            {
+                targetToEdit.totals.push({category: element.category, value:0});
+            }
         }
-        return categories;
+        return new Target(targetToEdit);
     }
     addEntry (entry) {
       var found = false;
@@ -141,16 +174,16 @@ class Accounts {
         found = false;
         
         var date = new Date(entry.date);
-        var monthOfEntry=date.getFullYear() * 12 + date.getMonth(); 
+        var tidOfEntry=date.getFullYear() * 12 + date.getMonth(); 
         this.categoryMonths.forEach(categoryMonth =>{
-            if(categoryMonth.month === monthOfEntry)
+            if(categoryMonth.tid === tidOfEntry)
             {
                 categoryMonth.addEntry(entry);
                 found = true;
             }
         });
         if(!found){
-            var mc = new MonthCategories(monthOfEntry);
+            var mc = new MonthCategories(tidOfEntry);
             mc.addEntry(entry);
             this.categoryMonths.push(mc);
         }
@@ -158,5 +191,3 @@ class Accounts {
 
     }  
 }
-
-export default Accounts;

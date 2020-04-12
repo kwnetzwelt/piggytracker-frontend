@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef, createRef} from 'react';
 import { makeStyles,withStyles,lighten } from '@material-ui/core/styles';
+
+import CircularProgress from '@material-ui/core/CircularProgress';
 import Fab from '@material-ui/core/Fab';
 import AddIcon from '@material-ui/icons/Add';
 import AppBar from '@material-ui/core/AppBar';
@@ -13,6 +15,7 @@ import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogContentText from '@material-ui/core/DialogContentText';
 import DialogTitle from '@material-ui/core/DialogTitle';
+import MaterialTable from 'material-table';
 import './App.css';
 import axios from 'axios';
 import Menu from '@material-ui/core/Menu';
@@ -34,7 +37,7 @@ import MoreVertIcon from '@material-ui/icons/MoreVert';
 import MuiVirtualizedTable from 'mui-virtualized-table';
 import {AutoSizer} from 'react-virtualized';
 import Config from './Config.js';
-import Accounts from './Accounts.js';
+import {Accounts,Target} from './Accounts.js';
 import Grid from '@material-ui/core/Grid';
 import LinearProgress from '@material-ui/core/LinearProgress';
 
@@ -61,6 +64,18 @@ const BorderLinearProgress = withStyles({
 const useStyles = makeStyles((theme) => ({
   root: {
     flexGrow: 1,
+  },
+  
+  wrapper: {
+    margin: theme.spacing(1),
+    position: 'relative',
+  },
+  buttonProgress: {
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    marginTop: -12,
+    marginLeft: -12,
   },
   bottomNavigation: {
     width: '100%',
@@ -112,20 +127,22 @@ function App() {
 
   /* -- accounts view --*/
   const [catMonthOptionsMenuTarget, setCatMonthOptionsMenuTarget] = React.useState(null);
-  const [catMonthOptionsMenuEntry, setCatMonthOptionsMenuEntry] = React.useState(null);
+  const [monthTargetsObject, setMonthTargetsObject] = React.useState(null);
   const [IsMonthTargetsDialogOpen, monthTargetsDialogOpen] = useState(false); // hidden dialogs
   const [catMonthTargets, setCatMonthTargets] = useState([]);
+  const [monthTargetsDialogSavingAllowed,setMonthTargetsDialogSavingAllowed] = useState(false);
 
+  const monthTargetsColumns = [{title:'Category',field:'category'},{title:'Target',field:'value'}];
+  
   const catMonthOptionsMenuToggle = (event,tid) => {
     
-    setCatMonthOptionsMenuEntry(tid);
+    
+    const target = accountValues.getTargetForEditing(tid.tid);
+    setMonthTargetsObject(target);
     setCatMonthOptionsMenuTarget(event.currentTarget);
 
-    const targets = accountValues.getTargetsForEditing(tid.month);
-
-    setCatMonthTargets(targets);
+    setCatMonthTargets(target.totals);
   };
-
   const catMonthOptionsMenuHandleClose = () => {
     setCatMonthOptionsMenuTarget(null);
   };
@@ -142,8 +159,37 @@ function App() {
   }
 
   const submitMonthTargetsDialog = () => {
-    hideMonthTargetsDialog();
+    setMonthTargetsDialogSavingAllowed(true);
+    setTimeout(() =>{
+      const updatedTargetData = accountValues.setTargets(monthTargetsObject.tid,catMonthTargets);
+      axios({method: updatedTargetData._id ? "PUT" : "POST",url : apiEndpoint + "/target" + (updatedTargetData._id ? ("/"+updatedTargetData._id) : ("")), headers: getAuthHeader(), data:updatedTargetData}).then( result => {
+        
+        console.log("done");      
+      }).finally(() =>{
+        setMonthTargetsDialogSavingAllowed(false);
+        hideMonthTargetsDialog();
+      });
+
+    },200);
+
   }
+  const monthTargetsEditableFunctions = {
+
+    onRowUpdate: (newData, oldData) =>
+      new Promise((resolve) => {
+        resolve();
+        const data = [...catMonthTargets];
+        for (let index = 0; index < data.length; index++) {
+          const element = data[index];
+          if(element.category == oldData.category){
+            data[index] = newData;
+            
+          }
+        }
+        setCatMonthTargets((d) =>{return d,data;});
+      }),
+  }
+
   /* -- data handling --*/
   const dataTableDataColumns = [
       {  header: "Date", name:"date",  cell:(row) => dateTimeFormat.format(new Date(row.date))},
@@ -152,9 +198,8 @@ function App() {
       {  header: "Category",    name: "category"    },
       {  header: "Info",        name: "info"        }
     ];
-  
   const [dataEntries,setDataEntries] = useState([]);
-  const [accountValues,setAccountValues] = useState(new Accounts);
+  const [accountValues,setAccountValues] = useState(new Accounts());
   const updateAccounts = (entries,targets) => {
     const newAccountValues = new Accounts(targets);
     entries.forEach(element => {
@@ -368,22 +413,34 @@ function App() {
         <MenuItem onClick={hideAvatarContextMenu} id="avatar-context-menu-logout">Logout</MenuItem>
       </Menu>
 
+
+
       {/* MONTHLY TARGET DIALOG */}
       <Dialog open={IsMonthTargetsDialogOpen} onClose={hideMonthTargetsDialog} aria-labelledby="form-dialog-add-entry-title">
-      <DialogTitle id="form-dialog-add-entry-title">Monthly Target for {catMonthOptionsMenuEntry ? dateTimeFormatMonthName.format(new Date(catMonthOptionsMenuEntry.year,catMonthOptionsMenuEntry.actualMonth,1)) : ""}</DialogTitle>
+      <DialogTitle id="form-dialog-add-entry-title">Monthly Target for {monthTargetsObject ? dateTimeFormatMonthName.format(new Date(monthTargetsObject.year,monthTargetsObject.month,1)) : ""}</DialogTitle>
       <DialogContent>
-        {catMonthTargets.map(catTotal =>
-          <p>{catTotal.category}-{catTotal.value}
-          </p>
-        )}
+        <MaterialTable columns={monthTargetsColumns}
+          data={catMonthTargets}
+          editable={monthTargetsEditableFunctions}
+          options={{
+            paging: false,
+            search:false,
+            showTitle:false,
+            toolbar:false
+          }}
+
+         />
       </DialogContent>
       <DialogActions>
         <Button onClick={hideMonthTargetsDialog} color="primary">
           Cancel
         </Button>
-        <Button variant="contained" onClick={submitMonthTargetsDialog} color="primary" disableElevation>
-          Add
+        <div className={classes.wrapper}>
+        <Button variant="contained" disabled={monthTargetsDialogSavingAllowed} onClick={submitMonthTargetsDialog} color="primary" disableElevation>
+          Save
         </Button>
+        {monthTargetsDialogSavingAllowed && <CircularProgress size={24} className={classes.buttonProgress} />}
+        </div>
       </DialogActions>
       </Dialog>
 
@@ -550,7 +607,7 @@ function App() {
                 <Grid key={catMonth.month} item  xs>
                   <Card className={classes.root}>
                   
-                    <CardHeader title={dateTimeFormatMonthName.format(new Date(catMonth.year,catMonth.actualMonth,1))}
+                    <CardHeader title={dateTimeFormatMonthName.format(new Date(catMonth.year,catMonth.month,1))}
                       action={
                         <IconButton aria-label="settings" onClick={e => catMonthOptionsMenuToggle(e,catMonth)}>
                           <MoreVertIcon />
@@ -572,7 +629,7 @@ function App() {
                           <TableRow key={entry.category}>
                             <TableCell>{entry.category}</TableCell>
                             <TableCell align="right">{entry.value}</TableCell>
-                            <TableCell align="right">{accountValues.getTargetValue(catMonth.month, entry.category)}</TableCell>
+                            <TableCell align="right">{accountValues.getTargetValue(catMonth.tid, entry.category)}</TableCell>
                           </TableRow>
                         )}
                         </TableBody>
