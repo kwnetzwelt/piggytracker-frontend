@@ -49,7 +49,6 @@ import TableCell from '@material-ui/core/TableCell';
 import TableContainer from '@material-ui/core/TableContainer';
 import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
-import Autocomplete from '@material-ui/lab/Autocomplete';
 import Radio from '@material-ui/core/Radio';
 import RadioGroup from '@material-ui/core/RadioGroup';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
@@ -57,6 +56,7 @@ import FormControl from '@material-ui/core/FormControl';
 import FormLabel from '@material-ui/core/FormLabel';
 import Container from '@material-ui/core/Container';
 import FormGroup from '@material-ui/core/FormGroup';
+import Select from '@material-ui/core/Select';
 
 const BorderLinearProgress = withStyles({
   root: {
@@ -75,11 +75,9 @@ const useStyles = makeStyles((theme) => ({
   },
   radioGroup: {
     marginTop:theme.spacing(1),
-    marginLeft:"auto",
-    marginRight:"auto"
   },
   formControl: {
-    margin: theme.spacing(3),
+    margin: theme.spacing(1),
     display:'block'
   },
   critical: {
@@ -503,25 +501,33 @@ setMonthTargetsDialogSavingAllowed(false);
           onChange={(e) => setEntryValue({value:ensureMonetaryValue(e.target.value),error:null})}
         />
         
-        <FormControl component="fieldset" className={classes.formControl}>
-          <InputLabel shrink>Remunerator</InputLabel>
-          
-          <RadioGroup className={classes.radioGroup} row aria-label="remunerator" name="remunerator" value={entryValue.remunerator} onChange={(e) => setEntryRemunerator({value:e.target.value,error:null})}>
-            <Grid alignItems="center">
+        <FormControl className={classes.formControl}>
+          <InputLabel id="addEntryRemuneratorLabel">Remunerator</InputLabel>
+          <Select
+           labelId="addEntryRemuneratorLabel"
+           value={entryRemunerator.value} onChange={(e) => setEntryRemunerator({value:e.target.value,error:null})}
+           fullWidth
+           
+           >
           {accountValues.remunerators.map( (user) =>
-            <FormControlLabel className="col-md-4" value={user} control={<Radio color="primary" />} label={user} labelPlacement="bottom" />
+            <MenuItem value={user}>{user}</MenuItem>
           )}
-          </Grid>
-          </RadioGroup>
+          </Select>
+          
         </FormControl>
-        <FormControl component="fieldset" className={classes.formControl }>
-          <FormLabel size="small" component="legend">Category</FormLabel>
-          <RadioGroup row aria-label="category" name="category" value={entryValue.category} onChange={(e) => setEntryCategory({value:e.target.value,error:null})}>
+        <FormControl className={classes.formControl }>
+        <InputLabel id="addEntryCategoryLabel">Category</InputLabel>
+          <Select
+           labelId="addEntryCategoryLabel"
+           value={entryCategory.value} onChange={(e) => setEntryCategory({value:e.target.value,error:null})}
+           fullWidth
+           
+           >
           {accountValues.categories.map( (category) =>
-            <FormControlLabel value={category} control={<Radio color="primary" />} label={category}
-            labelPlacement="bottom" />
+            <MenuItem value={category}>{category}</MenuItem>
           )}
-          </RadioGroup>
+          </Select>
+          
         </FormControl>
         <FormGroup row>
           <TextField id="entry-remunerator"
@@ -529,12 +535,13 @@ setMonthTargetsDialogSavingAllowed(false);
             InputProps={{
               startAdornment: <InputAdornment position="start"><AccountCircle /></InputAdornment>,
             }}
-            
+            className="col-md-2"
             value={entryRemunerator.value}
             onChange={(e) => setEntryRemunerator({value:e.target.value,error:null})}
             />
           <TextField id="entry-category"
             label="Category"
+            className="col-md-2"
             InputProps={{
               startAdornment: <InputAdornment position="start"><CheckCircleIcon /></InputAdornment>,
             }}
