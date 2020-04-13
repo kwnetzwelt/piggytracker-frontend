@@ -135,7 +135,7 @@ function App() {
   const [catMonthTargets, setCatMonthTargets] = useState([]);
   const [monthTargetsDialogSavingAllowed,setMonthTargetsDialogSavingAllowed] = useState(false);
 
-  const monthTargetsColumns = [{title:'Category',field:'category'},{title:'Target',field:'value'}];
+  const monthTargetsColumns = [{title:'Category',field:'category'},{title:'Target',field:'value', type:"number"}];
   
   const catMonthOptionsMenuToggle = (event,tid) => {
     
@@ -163,17 +163,17 @@ function App() {
 
   const submitMonthTargetsDialog = () => {
     setMonthTargetsDialogSavingAllowed(true);
-    setTimeout(() =>{
       const updatedTargetData = accountValues.setTargets(monthTargetsObject.tid,catMonthTargets);
       axios({method: updatedTargetData._id ? "PUT" : "POST",url : apiEndpoint + "/target" + (updatedTargetData._id ? ("/"+updatedTargetData._id) : ("")), headers: getAuthHeader(), data:updatedTargetData}).then( result => {
         
+        updatedTargetData._id = result.data._id;
         console.log("done");      
       }).finally(() =>{
         setMonthTargetsDialogSavingAllowed(false);
         hideMonthTargetsDialog();
       });
-
-    },200);
+setMonthTargetsDialogSavingAllowed(false);
+        hideMonthTargetsDialog();
 
   }
   const monthTargetsEditableFunctions = {
@@ -184,12 +184,13 @@ function App() {
         const data = [...catMonthTargets];
         for (let index = 0; index < data.length; index++) {
           const element = data[index];
-          if(element.category == oldData.category){
+          if(element.category === oldData.category){
             data[index] = newData;
-            
+            data[index].value = parseFloat(data[index].value);
           }
         }
-        setCatMonthTargets((d) =>{return d,data;});
+        setCatMonthTargets(data);
+        setMonthTargetsDialogSavingAllowed(false);
       }),
   }
 
@@ -209,7 +210,6 @@ function App() {
       newAccountValues.addEntry(element);
     });
     setAccountValues(newAccountValues);
-    console.log(newAccountValues);
   }
   /* -- add Entry --*/
   const [entryDate,setEntryDate] = useState({value:new Date(),error:null});
@@ -235,7 +235,6 @@ function App() {
       remunerator:entryRemunerator.value.toString(),
       info:entryInfo.value.toString()
     }
-    console.log(entry);
     axios({method:"POST",url : apiEndpoint + "/bill", headers: getAuthHeader(), data:entry}).then( result => {
 
       hideAddEntryDialog();
@@ -289,13 +288,11 @@ function App() {
             const element = data[index];
             tempInsertData.push(element);
           }
-          console.log(dataEntries.length);
           if(total > (page * pageSize + data.length))
           {
             setTimeout(fetchAllData, 1,pageSize, page+1);
           }else
           {
-            console.log("done");
             
             setDataEntries(entries => tempInsertData);
             updateAccounts(tempInsertData,targetsData);
@@ -357,7 +354,6 @@ function App() {
       username: loginUsername.value,
       password: loginPassword.value
     };
-    console.log(JSON.stringify(body));
     axios.post(apiEndpoint + '/login',body
     ).then(result => {
       storeAuthToken(result.data.token);

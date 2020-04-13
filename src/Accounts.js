@@ -49,10 +49,9 @@ export class MonthCategories {
 export class Target {
     constructor(obj){
         this._id = obj._id ? obj._id : undefined;
-        this.totals = obj.totals ? obj.totals : [];
-        for (let index = 0; index < this.totals.length; index++) {
-            this.totals[index].value = parseFloat(this.totals[index].value);
-        }
+        this.totals = [];
+        
+        this.setTotals(obj.totals ? obj.totals : []);
 
         this.tid = parseInt(obj.tid ? obj.tid : 0);
         /**
@@ -63,6 +62,18 @@ export class Target {
          * @readonly
          */
         this.year = Math.floor(obj.tid / 12);
+
+    }
+    setTotals (newTotals){
+        var t = [];
+        for (let index = 0; index < newTotals.length; index++) {
+            let cleanedUp = {
+                value:parseFloat(newTotals[index].value),
+                category:newTotals[index].category
+            }
+            t.push(cleanedUp);
+        }
+        this.totals = t;
     }
 }
 
@@ -105,8 +116,9 @@ export class Accounts {
             const element = this.targets[index];
             if(element.tid === tid){
                 var target = element.totals.find((e) => e.category === category);
-                if(target)
+                if(target){
                     return target.value;
+                }
                 return 0;
             }
         }
@@ -130,16 +142,20 @@ export class Accounts {
     
     //const updatedTargetData = accountValues.setTargets(monthTargetsObject.tid,catMonthTargets);
     setTargets(tid, catMonthTargets) {
+        console.log("set targets ");
+        console.log(catMonthTargets);
         var targetIndex = this.targets.findIndex((e) => e.tid === tid);
-        var targetToEdit = {tid:tid, totals:[...catMonthTargets]};
         if(targetIndex != -1)
         {
-            targetToEdit = this.targets.splice(targetIndex,1)[0];
-            targetToEdit.totals = [...catMonthTargets];
+            this.targets[targetIndex].setTotals(catMonthTargets);
+            return this.targets[targetIndex];
+        }else
+        {
+            var newTarget = new Target({tid:tid, totals:[...catMonthTargets]});
+            this.targets.push(newTarget);
+            return newTarget;
+
         }
-        var newTarget = new Target(targetToEdit);
-        this.targets.push(newTarget);
-        return targetToEdit;
     }
     getTargetForEditing (tid) {
         var target = this.targets.find((e) => e.tid === tid);
