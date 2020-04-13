@@ -20,7 +20,8 @@ import './App.css';
 import axios from 'axios';
 import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
-import { Avatar, TextField, Card, CardContent, CardHeader } from '@material-ui/core';
+import { Avatar, TextField, Card, CardContent, CardHeader, InputLabel } from '@material-ui/core';
+import Chip from '@material-ui/core/Chip';
 import {BottomNavigation, BottomNavigationAction} from '@material-ui/core';
 import DateFnsUtils from '@date-io/date-fns';
 import {MuiPickersUtilsProvider ,DatePicker} from '@material-ui/pickers';
@@ -48,7 +49,14 @@ import TableCell from '@material-ui/core/TableCell';
 import TableContainer from '@material-ui/core/TableContainer';
 import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
-
+import Autocomplete from '@material-ui/lab/Autocomplete';
+import Radio from '@material-ui/core/Radio';
+import RadioGroup from '@material-ui/core/RadioGroup';
+import FormControlLabel from '@material-ui/core/FormControlLabel';
+import FormControl from '@material-ui/core/FormControl';
+import FormLabel from '@material-ui/core/FormLabel';
+import Container from '@material-ui/core/Container';
+import FormGroup from '@material-ui/core/FormGroup';
 
 const BorderLinearProgress = withStyles({
   root: {
@@ -64,6 +72,15 @@ const BorderLinearProgress = withStyles({
 const useStyles = makeStyles((theme) => ({
   root: {
     flexGrow: 1,
+  },
+  radioGroup: {
+    marginTop:theme.spacing(1),
+    marginLeft:"auto",
+    marginRight:"auto"
+  },
+  formControl: {
+    margin: theme.spacing(3),
+    display:'block'
   },
   critical: {
     color:'red',
@@ -82,8 +99,8 @@ const useStyles = makeStyles((theme) => ({
   },
   bottomNavigation: {
     width: '100%',
-  position: 'fixed',
-  bottom: 0,
+    position: 'fixed',
+    bottom: 0,
   },
   appBar: {
     position: 'sticky'
@@ -197,7 +214,7 @@ setMonthTargetsDialogSavingAllowed(false);
   /* -- data handling --*/
   const dataTableDataColumns = [
       {  header: "Date", name:"date",  cell:(row) => dateTimeFormat.format(new Date(row.date))},
-      {  header: "Value", name:"value", alignItems: "right",      cell:(row) => Config.toCurrencyValue(row.value)} ,
+      {  header: "Value", name:"value", alignItems: "right",      cell:(row) => Config.toCurrencyValue(row.value ?? 0)} ,
       {  header: "Remunerator", name: "remunerator" },
       {  header: "Category",    name: "category"    },
       {  header: "Info",        name: "info"        }
@@ -219,11 +236,16 @@ setMonthTargetsDialogSavingAllowed(false);
   const [entryInfo,setEntryInfo] = useState({value:"",error:null});
   
   const [IsAddEntryDialogOpen, addEntryDialogOpen] = useState(false); // hidden dialogs
+  const [selectedRemunerator,setSelectedRemunerator] = useState(null);
   const showAddEntryDialog = () => {
     addEntryDialogOpen(true);
   }
   const hideAddEntryDialog = () => {
     addEntryDialogOpen(false);
+  }
+
+  const handleRemuneratorSelectionChange = (e) => {
+    setSelectedRemunerator(e.target.value);
   }
 
   const submitAddEntryDialog = () => {
@@ -476,29 +498,52 @@ setMonthTargetsDialogSavingAllowed(false);
           }}
           fullWidth
           type="number"
+          variant="filled"
           value={entryValue.value}
           onChange={(e) => setEntryValue({value:ensureMonetaryValue(e.target.value),error:null})}
         />
-
-        <TextField id="entry-renumerator"
-          label="Remunerator"
-          InputProps={{
-            startAdornment: <InputAdornment position="start"><AccountCircle /></InputAdornment>,
-          }}
-          fullWidth
-          value={entryRemunerator.value}
-          onChange={(e) => setEntryRemunerator({value:e.target.value,error:null})}
-        />
+        
+        <FormControl component="fieldset" className={classes.formControl}>
+          <InputLabel shrink>Remunerator</InputLabel>
+          
+          <RadioGroup className={classes.radioGroup} row aria-label="remunerator" name="remunerator" value={entryValue.remunerator} onChange={(e) => setEntryRemunerator({value:e.target.value,error:null})}>
+            <Grid alignItems="center">
+          {accountValues.remunerators.map( (user) =>
+            <FormControlLabel className="col-md-4" value={user} control={<Radio color="primary" />} label={user} labelPlacement="bottom" />
+          )}
+          </Grid>
+          </RadioGroup>
+        </FormControl>
+        <FormControl component="fieldset" className={classes.formControl }>
+          <FormLabel size="small" component="legend">Category</FormLabel>
+          <RadioGroup row aria-label="category" name="category" value={entryValue.category} onChange={(e) => setEntryCategory({value:e.target.value,error:null})}>
+          {accountValues.categories.map( (category) =>
+            <FormControlLabel value={category} control={<Radio color="primary" />} label={category}
+            labelPlacement="bottom" />
+          )}
+          </RadioGroup>
+        </FormControl>
+        <FormGroup row>
+          <TextField id="entry-remunerator"
+            label="Remunerator"
+            InputProps={{
+              startAdornment: <InputAdornment position="start"><AccountCircle /></InputAdornment>,
+            }}
+            
+            value={entryRemunerator.value}
+            onChange={(e) => setEntryRemunerator({value:e.target.value,error:null})}
+            />
           <TextField id="entry-category"
             label="Category"
             InputProps={{
               startAdornment: <InputAdornment position="start"><CheckCircleIcon /></InputAdornment>,
             }}
-            fullWidth
+            
             value={entryCategory.value}
             onChange={(e) => setEntryCategory({value:e.target.value,error:null})}
-          />
-        
+            />
+          
+        </FormGroup>
 
         <TextField id="entry-info"
             label="Info"
@@ -627,7 +672,7 @@ setMonthTargetsDialogSavingAllowed(false);
                         {catMonth.totals.map((entry) =>
                           <TableRow key={entry.category}>
                             <TableCell>{entry.category}</TableCell>
-                            <TableCell className={accountValues.getTargetStatus(catMonth.tid, entry.category,entry.value) == "CRIT" ? classes.critical:classes.root} align="right">{Config.toCurrencyValue(entry.value)}</TableCell>
+                            <TableCell className={accountValues.getTargetStatus(catMonth.tid, entry.category,entry.value ?? 0) == "CRIT" ? classes.critical:classes.root} align="right">{Config.toCurrencyValue(entry.value ?? 0)}</TableCell>
                             <TableCell align="right">{Config.toCurrencyValue(accountValues.getTargetValue(catMonth.tid, entry.category))}</TableCell>
                           </TableRow>
                         )}

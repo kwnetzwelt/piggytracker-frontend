@@ -100,6 +100,9 @@ export class Accounts {
          * @property {MonthCategories []}
          */
         this.categoryMonths = [];
+        
+        this.allCategories = [];
+        this.allRemunerators = [];
 
     }
     getTargetStatus(tid, category,comparingValue){
@@ -117,21 +120,21 @@ export class Accounts {
             if(element.tid === tid){
                 var target = element.totals.find((e) => e.category === category);
                 if(target){
-                    return target.value;
+                    return target.value ?? 0;
                 }
                 return 0;
             }
         }
         return 0;
     }
+    get categories() {
+        return this.allCategories;
+    }
+    get remunerators() {
+        return this.allRemunerators;
+    }
     get spendings() {
         return this.remuneratorSpendings;
-    }
-    /**
-     * @returns {CategoryAccount[]}
-     */
-    get categories() {
-        return this.categoryTotals;
     }
     /**
      * @returns {MonthCategories[]}
@@ -145,7 +148,7 @@ export class Accounts {
         console.log("set targets ");
         console.log(catMonthTargets);
         var targetIndex = this.targets.findIndex((e) => e.tid === tid);
-        if(targetIndex != -1)
+        if(targetIndex !== -1)
         {
             this.targets[targetIndex].setTotals(catMonthTargets);
             return this.targets[targetIndex];
@@ -165,9 +168,9 @@ export class Accounts {
             targetToEdit = target;
         
         // ensure all categories are present
-        for (let index = 0; index < this.categories.length; index++) {
-            const element = this.categories[index];
-            const hasValueForCategory = targetToEdit.totals.find((e) => e.category == element.category);
+        for (let index = 0; index < this.categoryTotals.length; index++) {
+            const element = this.categoryTotals[index];
+            const hasValueForCategory = targetToEdit.totals.find((e) => e.category === element.category);
             if(!hasValueForCategory)
             {
                 targetToEdit.totals.push({category: element.category, value:0});
@@ -212,6 +215,13 @@ export class Accounts {
             this.categoryMonths.push(mc);
         }
 
-
+        if(this.allRemunerators.indexOf(entry.remunerator) === -1)
+        {
+            this.allRemunerators.push(entry.remunerator);
+        }
+        if(entry.category && this.allCategories.indexOf(entry.category) === -1)
+        {
+            this.allCategories.push(entry.category);
+        }
     }  
 }
