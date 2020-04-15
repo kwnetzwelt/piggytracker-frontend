@@ -20,7 +20,7 @@ import './App.css';
 import axios from 'axios';
 import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
-import { Avatar, TextField, Card, CardContent, CardHeader, InputLabel } from '@material-ui/core';
+import { Avatar, TextField, Card, CardContent, CardHeader, InputLabel, ThemeProvider, createMuiTheme, Box } from '@material-ui/core';
 import Chip from '@material-ui/core/Chip';
 import {BottomNavigation, BottomNavigationAction} from '@material-ui/core';
 import DateFnsUtils from '@date-io/date-fns';
@@ -46,17 +46,12 @@ import LinearProgress from '@material-ui/core/LinearProgress';
 import Table from '@material-ui/core/Table';
 import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
-import TableContainer from '@material-ui/core/TableContainer';
-import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
-import Radio from '@material-ui/core/Radio';
-import RadioGroup from '@material-ui/core/RadioGroup';
-import FormControlLabel from '@material-ui/core/FormControlLabel';
 import FormControl from '@material-ui/core/FormControl';
-import FormLabel from '@material-ui/core/FormLabel';
-import Container from '@material-ui/core/Container';
 import FormGroup from '@material-ui/core/FormGroup';
 import Select from '@material-ui/core/Select';
+
+import {red,dark} from '@material-ui/core/colors';
 
 const BorderLinearProgress = withStyles({
   root: {
@@ -69,9 +64,43 @@ const BorderLinearProgress = withStyles({
   },
 })(LinearProgress);
 
+const theme = createMuiTheme({
+  palette: {
+    criticalColor: {main:red[700]}
+    ,
+    primary: {
+      // light: will be calculated from palette.primary.main,
+      main: '#01579b',
+      // dark: will be calculated from palette.primary.main,
+      // contrastText: will be calculated to contrast with palette.primary.main
+    },
+    secondary: {
+      main: red[700],
+      // dark: will be calculated from palette.secondary.main,
+      //contrastText: '#ffcc00',
+    },
+    // Used by `getContrastText()` to maximize the contrast between
+    // the background and the text.
+    contrastThreshold: 3,
+    // Used by the functions below to shift a color's luminance by approximately
+    // two indexes within its tonal palette.
+    // E.g., shift from Red 500 to Red 300 or Red 700.
+    tonalOffset: 0.2,
+  },
+});
 const useStyles = makeStyles((theme) => ({
   root: {
     flexGrow: 1,
+  },
+  deleteButton: {
+  }
+  ,
+  spacer : {
+    flexGrow:1
+  },
+  dialogActions : {
+    flexGrow: 1,
+    justifyContent:"flex-start"
   },
   radioGroup: {
     marginTop:theme.spacing(1),
@@ -80,10 +109,7 @@ const useStyles = makeStyles((theme) => ({
     margin: theme.spacing(1),
     display:'block'
   },
-  critical: {
-    color:'red',
-    fontWeight:'bold'
-  },
+  
   wrapper: {
     margin: theme.spacing(1),
     position: 'relative',
@@ -101,7 +127,8 @@ const useStyles = makeStyles((theme) => ({
     bottom: 0,
   },
   appBar: {
-    position: 'sticky'
+    position: 'sticky',
+    backgroundColor: theme.primary
   },
   table : {
     
@@ -120,6 +147,10 @@ const useStyles = makeStyles((theme) => ({
   },
   accountsGrid : {
     flexGrow: 1
+  },
+  critical: {
+    color: red[400],
+    fontWeight:"bold"
   }
 }));
 
@@ -219,23 +250,63 @@ setMonthTargetsDialogSavingAllowed(false);
     ];
   const [dataEntries,setDataEntries] = useState([]);
   const [accountValues,setAccountValues] = useState(new Accounts());
+  const [selectedEntryId,setSelectedEntryId] = useState(null);
   const updateAccounts = (entries,targets) => {
+    if(!targets)
+      targets = accountValues.targets;
+
     const newAccountValues = new Accounts(targets);
     entries.forEach(element => {
       newAccountValues.addEntry(element);
     });
     setAccountValues(newAccountValues);
   }
+
+  const beginEditEntry = (entryId, clickedColumn) => {
+   // (rowData._id, column.name)
+   const entry = dataEntries.find((e) => e._id == entryId);
+   setEntryDate({value:new Date(entry.date),error:null});
+   setEntryValue({value:entry.value,error:null});
+   setEntryRemunerator({value:entry.remunerator,error:null});
+   setEntryCategory({value:entry.category,error:null});
+   setEntryInfo({value:entry.info,error:null});
+   //setEntryDate()
+   showAddEntryDialog(entry._id);
+  }
+
+  const deleteSelectedEntry = (e) => {
+    axios({method:"DELETE",url : apiEndpoint + "/bill" + ("/"+selectedEntryId), headers: getAuthHeader()}).then( result => {
+      hideAddEntryDialog();
+      var index = dataEntries.findIndex((e) => e._id == selectedEntryId);
+      dataEntries.splice(index,1);
+      setDataEntries(dataEntries);
+      updateAccounts(dataEntries);
+    }).catch(e => {
+      hideAddEntryDialog();
+      console.error(e);
+    });
+  }
+
   /* -- add Entry --*/
   const [entryDate,setEntryDate] = useState({value:new Date(),error:null});
   const [entryValue,setEntryValue] = useState({value:0,error:null});
-  const [entryCategory,setEntryCategory] = useState({value:[],error:null});
-  const [entryRemunerator,setEntryRemunerator] = useState({value:[],error:null});
+  const [entryCategory,setEntryCategory] = useState({value:"",error:null});
+  const [entryRemunerator,setEntryRemunerator] = useState({value:"",error:null});
   const [entryInfo,setEntryInfo] = useState({value:"",error:null});
   
   const [IsAddEntryDialogOpen, addEntryDialogOpen] = useState(false); // hidden dialogs
   const [selectedRemunerator,setSelectedRemunerator] = useState(null);
-  const showAddEntryDialog = () => {
+  const showAddEntryDialog = (id) => {
+    
+    setSelectedEntryId(id);
+    if(!id)
+    {
+      setEntryDate({value:new Date(),error:null});
+      setEntryValue({value:0,error:null});
+      setEntryCategory({value:"",error:null});
+      setEntryRemunerator({value:"",error:null});
+      setEntryInfo({value:"",error:null});
+    }
     addEntryDialogOpen(true);
   }
   const hideAddEntryDialog = () => {
@@ -255,10 +326,28 @@ setMonthTargetsDialogSavingAllowed(false);
       remunerator:entryRemunerator.value.toString(),
       info:entryInfo.value.toString()
     }
-    axios({method:"POST",url : apiEndpoint + "/bill", headers: getAuthHeader(), data:entry}).then( result => {
+    if(selectedEntryId)
+    {
+     entry._id = selectedEntryId;
+    }
+    axios({method:selectedEntryId ? "PUT" : "POST",url : apiEndpoint + "/bill" + (selectedEntryId ? ("/"+selectedEntryId) : ("")), headers: getAuthHeader(), data:entry}).then( result => {
 
       hideAddEntryDialog();
-      //dataTable.current && dataTable.current.onQueryChange();
+      
+      if(selectedEntryId)
+      {
+        //edited entry updated successfully
+        const index = dataEntries.findIndex((e) => e._id == selectedEntryId);
+        dataEntries[index] = result.data;
+      }else
+      {
+        //entry created successfully
+        dataEntries.unshift(result.data);
+      }
+
+      setDataEntries(dataEntries);
+      updateAccounts(dataEntries);
+
     }).catch(e => {
       console.error(e);
     });
@@ -399,6 +488,7 @@ setMonthTargetsDialogSavingAllowed(false);
   }
   return (
     <div className="App">
+      <ThemeProvider theme={theme}>
       <AppBar position="static" className={classes.appBar}>
         <Toolbar>
           <IconButton edge="start" className={classes.menuButton} color="inherit" aria-label="menu">
@@ -410,7 +500,8 @@ setMonthTargetsDialogSavingAllowed(false);
           {!loggedIn ?
             <Button onClick={showLoginDialog} color="inherit">Login</Button>
             :
-            <Avatar ref={avatarDisplay} aria-controls="avatar-context-menu" aria-haspopup="true" onClick={showAvatarContextMenu}>{userProfile.initials}</Avatar>
+            <Avatar ref={avatarDisplay} aria-controls="avatar-context-menu" aria-haspopup="true" onClick={showAvatarContextMenu} src={Config.staticAssets + userProfile.avatarUrl}>{userProfile.initials}</Avatar>
+            
           }
         </Toolbar>
       </AppBar>
@@ -467,7 +558,7 @@ setMonthTargetsDialogSavingAllowed(false);
 
 
       <Dialog open={IsAddEntryDialogOpen} onClose={hideAddEntryDialog} aria-labelledby="form-dialog-add-entry-title">
-      <DialogTitle id="form-dialog-add-entry-title">Add Entry</DialogTitle>
+      <DialogTitle id="form-dialog-add-entry-title">{selectedEntryId ? "Edit" : "Add"} Entry</DialogTitle>
       <DialogContent>
         <DialogContentText>
           
@@ -564,12 +655,18 @@ setMonthTargetsDialogSavingAllowed(false);
           />
 
       </DialogContent>
-      <DialogActions>
+      <DialogActions  className={classes.dialogActions}>
+      
+
+        {selectedEntryId && <Button variant="contained" onClick={deleteSelectedEntry} color="secondary" disableElevation align="left" className={classes.deleteButton}>
+          Delete
+        </Button>}
+        <Box className={classes.spacer} />
         <Button onClick={hideAddEntryDialog} color="primary">
           Cancel
         </Button>
         <Button variant="contained" onClick={submitAddEntryDialog} color="primary" disableElevation>
-          Add
+          {selectedEntryId ? "Save" : "Add"}
         </Button>
       </DialogActions>
       </Dialog>
@@ -632,6 +729,7 @@ setMonthTargetsDialogSavingAllowed(false);
               rowHeight={56}
               data={dataEntries}
               includeHeaders={true}
+              onCellClick={(column, rowData) => beginEditEntry(rowData._id, column.name)}
               >
               </MuiVirtualizedTable>
             )}
@@ -710,14 +808,13 @@ setMonthTargetsDialogSavingAllowed(false);
   <BottomNavigationAction label="Accounts" icon={<AccountBalanceIcon />} />
 </BottomNavigation>
       {loggedIn &&
-        <Fab color="primary" aria-label="add" className={classes.fab} onClick={showAddEntryDialog}>
+        <Fab color="primary" aria-label="add" className={classes.fab} onClick={(e) => showAddEntryDialog()}>
           <AddIcon />
         </Fab>
       }
-
+    </ThemeProvider>
     </div>
     
-
 
   );
 }
