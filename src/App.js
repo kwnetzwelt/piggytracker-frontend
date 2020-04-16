@@ -128,6 +128,7 @@ const useStyles = makeStyles((theme) => ({
     width: '100%',
     position: 'fixed',
     bottom: 0,
+    backgroundColor:blueGrey[50]
   },
   appBar: {
     position: 'sticky',
@@ -239,12 +240,12 @@ setMonthTargetsDialogSavingAllowed(false);
   
 
   /* -- data handling --*/
-  const dataTableDataColumns = [
-      {  header: "Date", name:"date",  cell:(row) => dateTimeFormat.format(new Date(row.date))},
-      {  header: "Value", name:"value", alignItems: "right",      cell:(row) => Config.toCurrencyValue(row.value ?? 0)} ,
-      {  header: "Remunerator", name: "remunerator" },
-      {  header: "Category",    name: "category"    },
-      {  header: "Info",        name: "info"        }
+  const dataTableDataColumns = (width) => [
+      {  minWidth:width*0.3 - theme.spacing(2), header: "Date", name:"date",  cell:(row) => dateTimeFormat.format(new Date(row.date))},
+      {  minWidth:width*0.05 - theme.spacing(2), header: "Value", name:"value", alignItems: "right",      cell:(row) => Config.toCurrencyValue(row.value ?? 0)} ,
+      {  minWidth:width*0.2 - theme.spacing(2), header: "Remunerator", name: "remunerator" },
+      {  minWidth:width*0.2 - theme.spacing(2), header: "Category",    name: "category"    },
+      {  minWidth:width*0.2 - theme.spacing(2), header: "Info",        name: "info"        }
     ];
   const [dataEntries,setDataEntries] = useState([]);
   const [accountValues,setAccountValues] = useState(new Accounts());
@@ -736,10 +737,12 @@ setMonthTargetsDialogSavingAllowed(false);
               width={width}
               height={height}
               fixedRowCount={1}
-              columns={dataTableDataColumns}
-              rowHeight={56}
+              columns={dataTableDataColumns(width)}
+              rowHeight={48}
               data={dataEntries}
               includeHeaders={true}
+              dense
+              cellProps={{ style: { paddingLeft: theme.spacing(1), paddingRight: theme.spacing(1) } }}
               onCellClick={(column, rowData) => beginEditEntry(rowData._id, column.name)}
               >
               </MuiVirtualizedTable>
