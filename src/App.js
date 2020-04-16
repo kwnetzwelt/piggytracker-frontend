@@ -789,8 +789,8 @@ setMonthTargetsDialogSavingAllowed(false);
                           <Grid item className={classes.spacer} />
                           <Grid item>{(catMonth.timePast() * 100).toFixed(2)}%</Grid>
                         </Grid>
-                      </Typography>
                       <LinearProgress variant="determinate" name="monthPast" value={catMonth.timePast() * 100} />
+                      </Typography>
                       <Table className={classes.table} aria-label="simple table">
                         <TableBody>
                         {catMonth.totals.map((entry) =>
@@ -800,6 +800,11 @@ setMonthTargetsDialogSavingAllowed(false);
                             <TableCell align="right">{Config.toCurrencyValue(accountValues.getTargetValue(catMonth.tid, entry.category))}</TableCell>
                           </TableRow>
                         )}
+                          <TableRow key="tots">
+                            <TableCell></TableCell>
+                            <TableCell className={(catMonth.totalsSum / accountValues.getTargetValueMonth(catMonth)) > Config.criticalThreshold ? classes.critical:classes.root} align="right"><strong>{Config.toCurrencyValue(catMonth.totalsSum)}</strong></TableCell>
+                            <TableCell align="right"><strong>{Config.toCurrencyValue(accountValues.getTargetValueMonth(catMonth))}</strong></TableCell>
+                          </TableRow>
                         </TableBody>
                       </Table>
                     </CardContent>
