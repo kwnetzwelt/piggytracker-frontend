@@ -22,7 +22,7 @@ export class MonthCategories {
         this.totals = [];
         this.year = Math.floor(this.tid /12);
         this.percentMoney = 0;
-
+        this.totalsSum = 0;
     };
     getValueInCategory(category)
     {
@@ -42,7 +42,20 @@ export class MonthCategories {
         });
         if(!found)
             this.totals.push(new CategoryAccount(entry.category,entry.value));
+        this.totalsSum += entry.value;
     };
+    timePast() {
+        const d = new Date();
+        if(this.year < d.getFullYear())
+        return 100;
+        if(this.month < d.getMonth())
+        return 100;
+        if(this.month == d.getMonth())
+        {
+        return (d.getUTCDate() / parseFloat(d.monthDays()));
+        }
+    }
+
 }
 
 
@@ -118,14 +131,30 @@ export class Accounts {
         for (let index = 0; index < this.targets.length; index++) {
             const element = this.targets[index];
             if(element.tid === tid){
+                
                 var target = element.totals.find((e) => e.category === category);
                 if(target){
                     return target.value ?? 0;
                 }
+            
                 return 0;
             }
         }
         return 0;
+    }
+    getTargetValueMonth(catMonth){
+        for (let index = 0; index < this.targets.length; index++) {
+            const element = this.targets[index];
+            if(element.tid === catMonth.tid){
+                var sum = 0;
+                catMonth.totals.forEach((ce) =>{
+                    var target = element.totals.find((e) => e.category === ce.category);
+                    sum += target.value;
+                });
+                console.log(sum);
+                return sum;
+            }
+        }
     }
     get categories() {
         return this.allCategories;

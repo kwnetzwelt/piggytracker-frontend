@@ -42,7 +42,6 @@ import {Accounts,Target} from './Accounts.js';
 import Grid from '@material-ui/core/Grid';
 import LinearProgress from '@material-ui/core/LinearProgress';
 
-
 import Table from '@material-ui/core/Table';
 import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
@@ -52,6 +51,7 @@ import FormGroup from '@material-ui/core/FormGroup';
 import Select from '@material-ui/core/Select';
 
 import {red,dark} from '@material-ui/core/colors';
+
 
 const BorderLinearProgress = withStyles({
   root: {
@@ -155,6 +155,12 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 function App() {
+
+  Date.prototype.monthDays= function(){
+    var d= new Date(this.getFullYear(), this.getMonth()+1, 0);
+    return d.getDate();
+  }
+
   const apiEndpoint = Config.apiEndpoint;
   const classes = useStyles();
   
@@ -183,6 +189,11 @@ function App() {
 
   const monthTargetsColumns = [{title:'Category',field:'category'},{title:'Target',field:'value', type:"number"}];
   
+  const catMonthMoneySpent = (catMonth) => {
+    
+  }
+
+
   const catMonthOptionsMenuToggle = (event,tid) => {
     
     
@@ -767,11 +778,19 @@ setMonthTargetsDialogSavingAllowed(false);
                     <CardContent align="left">
                       
                       <Typography gutterBottom variant="subtitle1">
-                        <span>Percent of Money spent vs. Percent of Month: </span>
-                        <span justify="flex-end">12% - 50%</span>
+                        <Grid container>
+                          <Grid item>Percent of Money spent:</Grid>
+                          <Grid item className={classes.spacer} />
+                          <Grid item>{((catMonth.totalsSum / accountValues.getTargetValueMonth(catMonth)) * 100).toFixed(2)}%</Grid>
+                        </Grid>
+                      <LinearProgress variant="determinate" name="moneySpent" value={(catMonth.totalsSum / accountValues.getTargetValueMonth(catMonth)) * 100} color={(catMonth.totalsSum / accountValues.getTargetValueMonth(catMonth)) > Config.criticalThreshold ? "secondary" : "primary"} />
+                        <Grid container>
+                          <Grid item>Percent of Month Past:</Grid>
+                          <Grid item className={classes.spacer} />
+                          <Grid item>{(catMonth.timePast() * 100).toFixed(2)}%</Grid>
+                        </Grid>
                       </Typography>
-                      <LinearProgress variant="determinate" name="moneySpent" value={50} />
-                      <LinearProgress variant="determinate" name="monthPast" value={55} />
+                      <LinearProgress variant="determinate" name="monthPast" value={catMonth.timePast() * 100} />
                       <Table className={classes.table} aria-label="simple table">
                         <TableBody>
                         {catMonth.totals.map((entry) =>
