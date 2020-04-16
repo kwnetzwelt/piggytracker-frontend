@@ -20,7 +20,7 @@ import './App.css';
 import axios from 'axios';
 import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
-import { Avatar, TextField, Card, CardContent, CardHeader, InputLabel, ThemeProvider, createMuiTheme, Box } from '@material-ui/core';
+import { Avatar, TextField, Card, CardContent, CardHeader, InputLabel, ThemeProvider, createMuiTheme, Box, CardMedia } from '@material-ui/core';
 import Chip from '@material-ui/core/Chip';
 import {BottomNavigation, BottomNavigationAction} from '@material-ui/core';
 import DateFnsUtils from '@date-io/date-fns';
@@ -130,6 +130,9 @@ const useStyles = makeStyles((theme) => ({
     position: 'sticky',
     backgroundColor: theme.primary
   },
+  cardMedia: {
+    objectPosition: "50% 66%"
+  },
   table : {
     
   },
@@ -187,13 +190,8 @@ function App() {
   const [catMonthTargets, setCatMonthTargets] = useState([]);
   const [monthTargetsDialogSavingAllowed,setMonthTargetsDialogSavingAllowed] = useState(false);
 
-  const monthTargetsColumns = [{title:'Category',field:'category'},{title:'Target',field:'value', type:"number"}];
   
-  const catMonthMoneySpent = (catMonth) => {
-    
-  }
-
-
+  
   const catMonthOptionsMenuToggle = (event,tid) => {
     
     
@@ -232,6 +230,18 @@ function App() {
 setMonthTargetsDialogSavingAllowed(false);
         hideMonthTargetsDialog();
 
+  }
+  const setCatMonthTargetValue = (target,value) => {
+    
+    const data = [...catMonthTargets];
+    for (let index = 0; index < data.length; index++) {
+      const element = data[index];
+      if(element.category === target.category){
+        data[index].value = parseFloat(value);
+        break;
+      }
+    }
+    setCatMonthTargets(data);
   }
   const monthTargetsEditableFunctions = {
 
@@ -540,17 +550,18 @@ setMonthTargetsDialogSavingAllowed(false);
       <Dialog open={IsMonthTargetsDialogOpen} onClose={hideMonthTargetsDialog} aria-labelledby="form-dialog-add-entry-title">
       <DialogTitle id="form-dialog-add-entry-title">Monthly Target for {monthTargetsObject ? dateTimeFormatMonthName.format(new Date(monthTargetsObject.year,monthTargetsObject.month,1)) : ""}</DialogTitle>
       <DialogContent>
-        <MaterialTable columns={monthTargetsColumns}
-          data={catMonthTargets}
-          editable={monthTargetsEditableFunctions}
-          options={{
-            paging: false,
-            search:false,
-            showTitle:false,
-            toolbar:false
-          }}
-
-         />
+        {catMonthTargets.map(target => 
+        <Box>
+            <TextField id={target.category}
+              InputProps={{
+                startAdornment: <InputAdornment position="start"><MonetizationOnIcon /></InputAdornment>,
+              }}
+              type="number"
+              label={target.category}
+              value={target.value}
+              onChange={(e) => (setCatMonthTargetValue(target,e.target.value))} />
+        </Box>
+         )}
       </DialogContent>
       <DialogActions>
         <Button onClick={hideMonthTargetsDialog} color="primary">
@@ -767,7 +778,7 @@ setMonthTargetsDialogSavingAllowed(false);
                 <Grid key={catMonth.month} item  xs>
                   <Card className={classes.root}>
                   
-                    <CardHeader title={dateTimeFormatMonthName.format(new Date(catMonth.year,catMonth.month,1))}
+                    <CardHeader title={dateTimeFormatMonthName.format(new Date(catMonth.year,catMonth.month,1)).split(" ").join("\u00a0")}
                       action={
                         <IconButton aria-label="settings" onClick={e => catMonthOptionsMenuToggle(e,catMonth)}>
                           <MoreVertIcon />
@@ -775,15 +786,23 @@ setMonthTargetsDialogSavingAllowed(false);
                       }
                     >
                     </CardHeader>
+                       <CardMedia
+          component="img"
+          alt="Contemplative Reptile"
+          height="140"
+          image={Config.staticAssets + "month/" + (catMonth.month).toString().padStart(2,"0") + ".jpg"}
+          className={classes.cardMedia}
+          title="Contemplative Reptile"
+        />
                     <CardContent align="left">
                       
                       <Typography gutterBottom variant="subtitle1">
                         <Grid container>
                           <Grid item>Percent of Money spent:</Grid>
                           <Grid item className={classes.spacer} />
-                          <Grid item>{((catMonth.totalsSum / accountValues.getTargetValueMonth(catMonth)) * 100).toFixed(2)}%</Grid>
+                          <Grid item>{Math.min(100,(catMonth.totalsSum / accountValues.getTargetValueMonth(catMonth)) * 100).toFixed(2)}%</Grid>
                         </Grid>
-                      <LinearProgress variant="determinate" name="moneySpent" value={(catMonth.totalsSum / accountValues.getTargetValueMonth(catMonth)) * 100} color={(catMonth.totalsSum / accountValues.getTargetValueMonth(catMonth)) > Config.criticalThreshold ? "secondary" : "primary"} />
+                      <LinearProgress variant="determinate" name="moneySpent" value={Math.min(100,(catMonth.totalsSum / accountValues.getTargetValueMonth(catMonth)) * 100)} color={(catMonth.totalsSum / accountValues.getTargetValueMonth(catMonth)) > Config.criticalThreshold ? "secondary" : "primary"} />
                         <Grid container>
                           <Grid item>Percent of Month Past:</Grid>
                           <Grid item className={classes.spacer} />
@@ -791,7 +810,7 @@ setMonthTargetsDialogSavingAllowed(false);
                         </Grid>
                       <LinearProgress variant="determinate" name="monthPast" value={catMonth.timePast() * 100} />
                       </Typography>
-                      <Table className={classes.table} aria-label="simple table">
+                      <Table size="small" className={classes.table} aria-label="simple table">
                         <TableBody>
                         {catMonth.totals.map((entry) =>
                           <TableRow key={entry.category}>

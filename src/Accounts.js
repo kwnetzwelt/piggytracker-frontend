@@ -47,13 +47,14 @@ export class MonthCategories {
     timePast() {
         const d = new Date();
         if(this.year < d.getFullYear())
-        return 100;
+        return 1;
         if(this.month < d.getMonth())
-        return 100;
+        return 1;
         if(this.month == d.getMonth())
         {
         return (d.getUTCDate() / parseFloat(d.monthDays()));
         }
+        return 0;
     }
 
 }
@@ -155,6 +156,7 @@ export class Accounts {
                 return sum;
             }
         }
+        return 0;
     }
     get categories() {
         return this.allCategories;
@@ -242,6 +244,7 @@ export class Accounts {
             var mc = new MonthCategories(tidOfEntry);
             mc.addEntry(entry);
             this.categoryMonths.push(mc);
+            this.categoryMonths.sort((m1,m2) => m1.tid > m2.tid ? 1 : -1);
         }
 
         if(this.allRemunerators.indexOf(entry.remunerator) === -1)
