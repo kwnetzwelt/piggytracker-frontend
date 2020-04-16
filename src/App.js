@@ -20,8 +20,8 @@ import './App.css';
 import axios from 'axios';
 import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
-import { Avatar, TextField, Card, CardContent, CardHeader, InputLabel, ThemeProvider, createMuiTheme, Box, CardMedia } from '@material-ui/core';
-import Chip from '@material-ui/core/Chip';
+import { Avatar, TextField, InputLabel, ThemeProvider, createMuiTheme, Box } from '@material-ui/core';
+
 import {BottomNavigation, BottomNavigationAction} from '@material-ui/core';
 import DateFnsUtils from '@date-io/date-fns';
 import {MuiPickersUtilsProvider ,DatePicker} from '@material-ui/pickers';
@@ -33,24 +33,18 @@ import CheckCircleIcon from '@material-ui/icons/CheckCircle';
 import InfoIcon from '@material-ui/icons/Info';
 import ReceiptIcon from '@material-ui/icons/Receipt';
 import AccountBalanceIcon from '@material-ui/icons/AccountBalance';
-import MoreVertIcon from '@material-ui/icons/MoreVert';
 
 import MuiVirtualizedTable from 'mui-virtualized-table';
 import {AutoSizer} from 'react-virtualized';
 import Config from './Config.js';
 import {Accounts, MonthCategories} from './Accounts.js';
 import Grid from '@material-ui/core/Grid';
-import LinearProgress from '@material-ui/core/LinearProgress';
-
-import Table from '@material-ui/core/Table';
-import TableBody from '@material-ui/core/TableBody';
-import TableCell from '@material-ui/core/TableCell';
-import TableRow from '@material-ui/core/TableRow';
 import FormControl from '@material-ui/core/FormControl';
 import FormGroup from '@material-ui/core/FormGroup';
 import Select from '@material-ui/core/Select';
 
 import {red,blueGrey} from '@material-ui/core/colors';
+import MonthCard from './MonthCard';
 
 
 
@@ -83,6 +77,24 @@ const useStyles = makeStyles((theme) => ({
   root: {
     flexGrow: 1,
   },
+  cardMedia: {
+    objectPosition: "50% 66%"
+
+  },
+  futureCard:{
+    backgroundColor: blueGrey[100]
+  },
+  expand: {
+    transform: 'rotate(0deg)',
+    marginLeft: 'auto',
+    transition: theme.transitions.create('transform', {
+      duration: theme.transitions.duration.shortest,
+    }),
+  },
+  expandOpen: {
+    transform: 'rotate(180deg)',
+  },
+
   deleteButton: {
   }
   ,
@@ -120,13 +132,6 @@ const useStyles = makeStyles((theme) => ({
   appBar: {
     position: 'sticky',
     backgroundColor: theme.primary
-  },
-  cardMedia: {
-    objectPosition: "50% 66%"
-
-  },
-  futureCard:{
-    backgroundColor: blueGrey[100]
   },
   table : {
     
@@ -761,58 +766,7 @@ setMonthTargetsDialogSavingAllowed(false);
 
                     {accountValues.categoryMonths.map((catMonth) => 
                 <Grid key={catMonth.month} item xs>
-                  <Card className={catMonth.isInFuture() ? classes.futureCard : classes.root} variant={catMonth.isInFuture() ? "outlined" : "" }>
-                  
-                    <CardHeader title={dateTimeFormatMonthName.format(new Date(catMonth.year,catMonth.month,1)).split(" ").join("\u00a0")}
-                      action={
-                        <IconButton aria-label="settings" onClick={e => catMonthOptionsMenuToggle(e,catMonth)}>
-                          <MoreVertIcon />
-                        </IconButton>
-                      }
-                    >
-                    </CardHeader>
-                       <CardMedia
-          component="img"
-          alt="Contemplative Reptile"
-          height="140"
-          image={Config.staticAssets + "month/" + (catMonth.month).toString().padStart(2,"0") + ".jpg"}
-          className={classes.cardMedia}
-          title="Contemplative Reptile"
-        />
-                    <CardContent align="left">
-                      
-                      <Typography gutterBottom variant="subtitle1">
-                        <Grid container>
-                          <Grid item>Percent of Money spent:</Grid>
-                          <Grid item className={classes.spacer} />
-                          <Grid item>{Math.min(100,(catMonth.totalsSum / accountValues.getTargetValueMonth(catMonth)) * 100).toFixed(2)}%</Grid>
-                        </Grid>
-                      <LinearProgress variant="determinate" name="moneySpent" value={Math.min(100,(catMonth.totalsSum / accountValues.getTargetValueMonth(catMonth)) * 100)} color={(catMonth.totalsSum / accountValues.getTargetValueMonth(catMonth)) > Config.criticalThreshold ? "secondary" : "primary"} />
-                        <Grid container>
-                          <Grid item>Percent of Month Past:</Grid>
-                          <Grid item className={classes.spacer} />
-                          <Grid item>{(catMonth.timePast() * 100).toFixed(2)}%</Grid>
-                        </Grid>
-                      <LinearProgress variant="determinate" name="monthPast" value={catMonth.timePast() * 100} />
-                      </Typography>
-                      <Table size="small" className={classes.table} aria-label="simple table">
-                        <TableBody>
-                        {accountValues.categories.map((category) =>
-                          <TableRow key={category}>
-                            <TableCell>{category}</TableCell>
-                            <TableCell className={accountValues.getTargetStatus(catMonth.tid, category,catMonth.getValueInCategory(category) ?? 0) === "CRIT" ? classes.critical:classes.root} align="right">{Config.toCurrencyValue(catMonth.getValueInCategory(category) ?? 0)}</TableCell>
-                            <TableCell align="right">{Config.toCurrencyValue(accountValues.getTargetValue(catMonth.tid, category))}</TableCell>
-                          </TableRow>
-                        )}
-                          <TableRow key="tots">
-                            <TableCell></TableCell>
-                            <TableCell className={(catMonth.totalsSum / accountValues.getTargetValueMonth(catMonth)) > Config.criticalThreshold ? classes.critical:classes.root} align="right"><strong>{Config.toCurrencyValue(catMonth.totalsSum)}</strong></TableCell>
-                            <TableCell align="right"><strong>{Config.toCurrencyValue(accountValues.getTargetValueMonth(catMonth))}</strong></TableCell>
-                          </TableRow>
-                        </TableBody>
-                      </Table>
-                    </CardContent>
-                  </Card>
+                  <MonthCard monthCategories={catMonth} accounts={accountValues} menuToggle={(e,tid) =>{catMonthOptionsMenuToggle(e,tid);}} />
                 </Grid>
                     )}
           </Grid>
