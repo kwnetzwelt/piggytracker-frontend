@@ -24,6 +24,13 @@ export class MonthCategories {
         this.percentMoney = 0;
         this.totalsSum = 0;
     };
+
+
+    static monthDays (date) {
+        var d= new Date(date.getFullYear(), date.getMonth()+1, 0);
+        return d.getDate();
+      }
+
     getValueInCategory(category)
     {
         let total = this.totals.find(e => e.category === category);
@@ -50,11 +57,23 @@ export class MonthCategories {
         return 1;
         if(this.month < d.getMonth())
         return 1;
-        if(this.month == d.getMonth())
+        if(this.month === d.getMonth())
         {
-        return (d.getUTCDate() / parseFloat(d.monthDays()));
+        return (d.getUTCDate() / parseFloat(MonthCategories.monthDays(d)));
         }
         return 0;
+    };
+    isInFuture() {
+        const d = new Date();
+        if(this.year < d.getFullYear())
+        return false;
+        if(this.month < d.getMonth())
+        return false;
+        if(this.month === d.getMonth())
+        {
+            return false;
+        }
+        return true;
     }
 
 }
@@ -119,6 +138,11 @@ export class Accounts {
         this.allRemunerators = [];
 
     }
+    static getTidOfDate(date)
+    {
+        return date.getFullYear() * 12 + date.getMonth();
+    }
+
     getTargetStatus(tid, category,comparingValue){
         let value = this.getTargetValue(tid,category);
         return value <= comparingValue ? "CRIT" : "OK";
@@ -148,11 +172,12 @@ export class Accounts {
             const element = this.targets[index];
             if(element.tid === catMonth.tid){
                 var sum = 0;
-                catMonth.totals.forEach((ce) =>{
+                for (let jndex = 0; jndex < catMonth.totals.length; jndex++) {
+                    const ce = catMonth.totals[jndex];
                     var target = element.totals.find((e) => e.category === ce.category);
                     sum += target.value;
-                });
-                console.log(sum);
+                }
+                        
                 return sum;
             }
         }
@@ -209,6 +234,16 @@ export class Accounts {
         }
         return new Target(targetToEdit);
     }
+    addCatMonth(catMonth) {
+        
+        var existing = this.categoryMonths.find((e) => e.tid ===catMonth.tid);
+        if(existing)
+        {
+            new Error("catMonth with tid already exists. " + JSON.stringify(catMonth));
+        }
+        this.categoryMonths.push(catMonth);
+        this.categoryMonths.sort((m1,m2) => m1.tid < m2.tid ? 1 : -1);
+    }
     addEntry (entry) {
       var found = false;
       
@@ -232,7 +267,7 @@ export class Accounts {
         found = false;
         
         var date = new Date(entry.date);
-        var tidOfEntry=date.getFullYear() * 12 + date.getMonth(); 
+        var tidOfEntry= Accounts.getTidOfDate(date); 
         this.categoryMonths.forEach(categoryMonth =>{
             if(categoryMonth.tid === tidOfEntry)
             {
@@ -243,8 +278,7 @@ export class Accounts {
         if(!found){
             var mc = new MonthCategories(tidOfEntry);
             mc.addEntry(entry);
-            this.categoryMonths.push(mc);
-            this.categoryMonths.sort((m1,m2) => m1.tid > m2.tid ? 1 : -1);
+            this.addCatMonth(mc);
         }
 
         if(this.allRemunerators.indexOf(entry.remunerator) === -1)

@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef, createRef} from 'react';
-import { makeStyles,withStyles,lighten } from '@material-ui/core/styles';
+import React, { useState, useEffect, createRef} from 'react';
+import { makeStyles } from '@material-ui/core/styles';
 
 import CircularProgress from '@material-ui/core/CircularProgress';
 import Fab from '@material-ui/core/Fab';
@@ -15,7 +15,7 @@ import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogContentText from '@material-ui/core/DialogContentText';
 import DialogTitle from '@material-ui/core/DialogTitle';
-import MaterialTable from 'material-table';
+
 import './App.css';
 import axios from 'axios';
 import Menu from '@material-ui/core/Menu';
@@ -38,7 +38,7 @@ import MoreVertIcon from '@material-ui/icons/MoreVert';
 import MuiVirtualizedTable from 'mui-virtualized-table';
 import {AutoSizer} from 'react-virtualized';
 import Config from './Config.js';
-import {Accounts,Target} from './Accounts.js';
+import {Accounts, MonthCategories} from './Accounts.js';
 import Grid from '@material-ui/core/Grid';
 import LinearProgress from '@material-ui/core/LinearProgress';
 
@@ -50,19 +50,10 @@ import FormControl from '@material-ui/core/FormControl';
 import FormGroup from '@material-ui/core/FormGroup';
 import Select from '@material-ui/core/Select';
 
-import {red,dark} from '@material-ui/core/colors';
+import {red,blueGrey} from '@material-ui/core/colors';
 
 
-const BorderLinearProgress = withStyles({
-  root: {
-    height: 10,
-    backgroundColor: lighten('#ff6c5c', 0.5),
-  },
-  bar: {
-    borderRadius: 20,
-    backgroundColor: '#ff6c5c',
-  },
-})(LinearProgress);
+
 
 const theme = createMuiTheme({
   palette: {
@@ -132,6 +123,10 @@ const useStyles = makeStyles((theme) => ({
   },
   cardMedia: {
     objectPosition: "50% 66%"
+
+  },
+  futureCard:{
+    backgroundColor: blueGrey[100]
   },
   table : {
     
@@ -159,10 +154,6 @@ const useStyles = makeStyles((theme) => ({
 
 function App() {
 
-  Date.prototype.monthDays= function(){
-    var d= new Date(this.getFullYear(), this.getMonth()+1, 0);
-    return d.getDate();
-  }
 
   const apiEndpoint = Config.apiEndpoint;
   const classes = useStyles();
@@ -177,9 +168,6 @@ function App() {
   
   const [value, setValue] = React.useState('recents');
 
-  const handleChange = (event, newValue) => {
-    setValue(newValue);
-  };
   const dateTimeFormat = Intl.DateTimeFormat(Config.locale,Config.dateTimeFormat);
   const dateTimeFormatMonthName = Intl.DateTimeFormat(Config.locale,Config.dateTimeFormatMonthName);
 
@@ -243,23 +231,7 @@ setMonthTargetsDialogSavingAllowed(false);
     }
     setCatMonthTargets(data);
   }
-  const monthTargetsEditableFunctions = {
-
-    onRowUpdate: (newData, oldData) =>
-      new Promise((resolve) => {
-        resolve();
-        const data = [...catMonthTargets];
-        for (let index = 0; index < data.length; index++) {
-          const element = data[index];
-          if(element.category === oldData.category){
-            data[index] = newData;
-            data[index].value = parseFloat(data[index].value);
-          }
-        }
-        setCatMonthTargets(data);
-        setMonthTargetsDialogSavingAllowed(false);
-      }),
-  }
+  
 
   /* -- data handling --*/
   const dataTableDataColumns = [
@@ -280,12 +252,29 @@ setMonthTargetsDialogSavingAllowed(false);
     entries.forEach(element => {
       newAccountValues.addEntry(element);
     });
+
+    // Do we have a CatMonth Object for next month?
+    // We want to be able to edit targets for next/upcoming month prior to having stent anything. 
+    // We are thus making sure a CatMonth Object exists for the next month
+    
+    try
+    {
+      var d = new Date();
+      d = new Date(d.getFullYear(),d.getMonth() +1,1);
+      var tid = Accounts.getTidOfDate(d);
+      var mc = new MonthCategories(tid);
+      // this will throw an error if the MonthCategory already exists, we ignore it then. 
+      newAccountValues.addCatMonth(mc);
+    }catch
+    {
+      console.log("all is fine. future MonthCategory already in place. ");
+    }
     setAccountValues(newAccountValues);
   }
 
   const beginEditEntry = (entryId, clickedColumn) => {
    // (rowData._id, column.name)
-   const entry = dataEntries.find((e) => e._id == entryId);
+   const entry = dataEntries.find((e) => e._id === entryId);
    setEntryDate({value:new Date(entry.date),error:null});
    setEntryValue({value:entry.value,error:null});
    setEntryRemunerator({value:entry.remunerator,error:null});
@@ -296,9 +285,9 @@ setMonthTargetsDialogSavingAllowed(false);
   }
 
   const deleteSelectedEntry = (e) => {
-    axios({method:"DELETE",url : apiEndpoint + "/bill" + ("/"+selectedEntryId), headers: getAuthHeader()}).then( result => {
+    axios({method:"DELETE",url : apiEndpoint + "/bill/"+selectedEntryId, headers: getAuthHeader()}).then( result => {
       hideAddEntryDialog();
-      var index = dataEntries.findIndex((e) => e._id == selectedEntryId);
+      var index = dataEntries.findIndex((e) => e._id === selectedEntryId);
       dataEntries.splice(index,1);
       setDataEntries(dataEntries);
       updateAccounts(dataEntries);
@@ -316,8 +305,7 @@ setMonthTargetsDialogSavingAllowed(false);
   const [entryInfo,setEntryInfo] = useState({value:"",error:null});
   
   const [IsAddEntryDialogOpen, addEntryDialogOpen] = useState(false); // hidden dialogs
-  const [selectedRemunerator,setSelectedRemunerator] = useState(null);
-  const showAddEntryDialog = (id) => {
+    const showAddEntryDialog = (id) => {
     
     setSelectedEntryId(id);
     if(!id)
@@ -332,10 +320,6 @@ setMonthTargetsDialogSavingAllowed(false);
   }
   const hideAddEntryDialog = () => {
     addEntryDialogOpen(false);
-  }
-
-  const handleRemuneratorSelectionChange = (e) => {
-    setSelectedRemunerator(e.target.value);
   }
 
   const submitAddEntryDialog = () => {
@@ -358,7 +342,7 @@ setMonthTargetsDialogSavingAllowed(false);
       if(selectedEntryId)
       {
         //edited entry updated successfully
-        const index = dataEntries.findIndex((e) => e._id == selectedEntryId);
+        const index = dataEntries.findIndex((e) => e._id === selectedEntryId);
         dataEntries[index] = result.data;
       }else
       {
@@ -510,7 +494,7 @@ setMonthTargetsDialogSavingAllowed(false);
   return (
     <div className="App">
       <ThemeProvider theme={theme}>
-      <AppBar position="static" className={classes.appBar}>
+      <AppBar className={classes.appBar}>
         <Toolbar>
           <IconButton edge="start" className={classes.menuButton} color="inherit" aria-label="menu">
             <MenuIcon />
@@ -774,9 +758,10 @@ setMonthTargetsDialogSavingAllowed(false);
                 </Menu>
 
               <Grid container justify="center" spacing={1} className={classes.accountsGrid}>
+
                     {accountValues.categoryMonths.map((catMonth) => 
-                <Grid key={catMonth.month} item  xs>
-                  <Card className={classes.root}>
+                <Grid key={catMonth.month} item xs>
+                  <Card className={catMonth.isInFuture() ? classes.futureCard : classes.root} variant={catMonth.isInFuture() ? "outlined" : "" }>
                   
                     <CardHeader title={dateTimeFormatMonthName.format(new Date(catMonth.year,catMonth.month,1)).split(" ").join("\u00a0")}
                       action={
@@ -812,11 +797,11 @@ setMonthTargetsDialogSavingAllowed(false);
                       </Typography>
                       <Table size="small" className={classes.table} aria-label="simple table">
                         <TableBody>
-                        {catMonth.totals.map((entry) =>
-                          <TableRow key={entry.category}>
-                            <TableCell>{entry.category}</TableCell>
-                            <TableCell className={accountValues.getTargetStatus(catMonth.tid, entry.category,entry.value ?? 0) == "CRIT" ? classes.critical:classes.root} align="right">{Config.toCurrencyValue(entry.value ?? 0)}</TableCell>
-                            <TableCell align="right">{Config.toCurrencyValue(accountValues.getTargetValue(catMonth.tid, entry.category))}</TableCell>
+                        {accountValues.categories.map((category) =>
+                          <TableRow key={category}>
+                            <TableCell>{category}</TableCell>
+                            <TableCell className={accountValues.getTargetStatus(catMonth.tid, category,catMonth.getValueInCategory(category) ?? 0) === "CRIT" ? classes.critical:classes.root} align="right">{Config.toCurrencyValue(catMonth.getValueInCategory(category) ?? 0)}</TableCell>
+                            <TableCell align="right">{Config.toCurrencyValue(accountValues.getTargetValue(catMonth.tid, category))}</TableCell>
                           </TableRow>
                         )}
                           <TableRow key="tots">
