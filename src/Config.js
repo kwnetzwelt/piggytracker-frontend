@@ -4,6 +4,6 @@ module.exports = {
     locale : "de",
     dateTimeFormat:{ year: 'numeric', month: 'numeric', day: '2-digit' },
     dateTimeFormatMonthName:{month:'long', year:'numeric'},
-    toCurrencyValue :  value => value.toFixed(2) + " €" ,
+    toCurrencyValue :  value => value.toFixed(2) + "\u00a0€" ,
     criticalThreshold : 0.95
 }
