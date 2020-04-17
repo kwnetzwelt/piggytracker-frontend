@@ -56,7 +56,7 @@ export default function MonthCard(props) {
           component="img"
           alt="Contemplative Reptile"
           height="140"
-          image={Config.staticAssets + "month/" + (props.monthCategories.month).toString().padStart(2,"0") + ".jpg"}
+          image={Config.getMonthImageUrl(props.monthCategories)}
           className={classes.cardMedia}
           title="Contemplative Reptile"
         />

@@ -264,16 +264,16 @@ setMonthTargetsDialogSavingAllowed(false);
         }}
         badgeContent={
           <SmallAvatar alt={row.category} 
-        src={Config.staticAssets +"/categories/" + row.category.toLowerCase().replace(" ","-") + ".png"}
+        src={Config.getCategoryUrl(row.category)}
         />}
       >
-        <Avatar alt={row.remunerator} src={Config.staticAssets + "/avatars/" + row.remunerator.toLowerCase().replace(" ","-") + ".jpg"} />
+        <Avatar alt={row.remunerator} src={Config.getAvatarUrl(row.remunerator)} />
         </Badge>
         </div>) },
       {   header: "Date", name:"date",  cell:(row) => dateTimeFormat.format(new Date(row.date))},
       {   header: "Value", name:"value", alignItems: "right",      cell:(row) => Config.toCurrencyValue(row.value ?? 0)} ,
       {   header: "Category",    name: "category", cell:row => (
-        <Chip label={row.category} variant="outlined" size="small" avatar={<Avatar src={Config.staticAssets +"/categories/" + row.category.toLowerCase().replace(" ","-") + ".png"} />} />) },
+      <Chip label={row.category} variant="outlined" size="small" avatar={<Avatar src={Config.getCategoryUrl(row.category)} />} />) },
       {  header: "Info",        name: "info"        }
     ];
   const [dataEntries,setDataEntries] = useState([]);
@@ -574,7 +574,7 @@ setMonthTargetsDialogSavingAllowed(false);
         <Box>
             <TextField id={target.category}
               InputProps={{
-                startAdornment: <InputAdornment position="start"><SmallAvatar src={Config.staticAssets +"/categories/" + target.category.toLowerCase().replace(" ","-") + ".png"} /></InputAdornment>,
+                startAdornment: <InputAdornment position="start"><SmallAvatar src={Config.getCategoryUrl(target.category)} /></InputAdornment>,
               }}
               type="number"
               label={target.category}
@@ -644,7 +644,7 @@ setMonthTargetsDialogSavingAllowed(false);
            >
           {accountValues.categories.map( (category) =>
             <MenuItem value={category}>
-              <Chip label={category} variant="outlined" size="small" avatar={<Avatar src={Config.staticAssets +"/categories/" + category.toLowerCase().replace(" ","-") + ".png"} />} />
+              <Chip label={category} variant="outlined" size="small" avatar={<Avatar src={Config.getCategoryUrl(category)} />} />
               </MenuItem>
           )}
           </Select>
@@ -681,7 +681,7 @@ setMonthTargetsDialogSavingAllowed(false);
               >
               {accountValues.remunerators.map( (user) =>
                 <MenuItem value={user}>
-                  <Chip label={user} variant="outlined" size="small" avatar={<Avatar src={Config.staticAssets +"/avatars/" + user.toLowerCase().replace(" ","-") + ".jpg"} />} />
+                  <Chip label={user} variant="outlined" size="small" avatar={<Avatar src={Config.getAvatarUrl(user)} />} />
                 </MenuItem>
               )}
               </Select>

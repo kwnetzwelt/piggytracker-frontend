@@ -1,3 +1,8 @@
+# Frontend for Haushalt
+
+This app was created using create-react-app and uses material-ui extensively. 
+
+
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
 ## Available Scripts
@@ -66,3 +71,18 @@ This section has moved here: https://facebook.github.io/create-react-app/docs/de
 ### `npm run build` fails to minify
 
 This section has moved here: https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify
+
+
+
+
+## Customization
+
+Edit [Config.js](src/Config.js) to your likings. 
+
+### Define API Endpoint location
+
+`Config.apiEndpoint` refers to the backend service location. `Config.staticAssets` refers to a backend delivering images such as category, month and avatar imagery. 
+
+### Define asset locations
+
+`Config.getCategoryUrl`, `Config.getMonthImageUrl` and `Config.getAvatarUrl` define where icons for category, months and avatars are stored respectively. Please be aware of the naming scheme and file extensions!
