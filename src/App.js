@@ -10,17 +10,17 @@ import Typography from '@material-ui/core/Typography';
 import Button from '@material-ui/core/Button';
 import IconButton from '@material-ui/core/IconButton';
 import MenuIcon from '@material-ui/icons/Menu';
+import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogContentText from '@material-ui/core/DialogContentText';
 import DialogTitle from '@material-ui/core/DialogTitle';
-
 import './App.css';
 import axios from 'axios';
 import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
-import { Avatar, TextField, InputLabel, ThemeProvider, createMuiTheme, Box } from '@material-ui/core';
+import { Avatar, TextField, InputLabel, ThemeProvider, createMuiTheme, Box, withStyles, Badge, Chip, ExpansionPanel, ExpansionPanelSummary, ExpansionPanelDetails } from '@material-ui/core';
 
 import {BottomNavigation, BottomNavigationAction} from '@material-ui/core';
 import DateFnsUtils from '@date-io/date-fns';
@@ -135,7 +135,6 @@ const useStyles = makeStyles((theme) => ({
     backgroundColor: theme.primary
   },
   table : {
-    
   },
   menuButton: {
     marginRight: theme.spacing(2),
@@ -157,6 +156,20 @@ const useStyles = makeStyles((theme) => ({
     fontWeight:"bold"
   }
 }));
+
+const EntriesTable = withStyles((theme) => ({
+    cellContents:{
+      overflow :"visible"
+    },
+}))(MuiVirtualizedTable);
+
+const SmallAvatar = withStyles((theme) => ({
+  root: {
+    width: 18,
+    height: 18,
+    border: `1px solid ${theme.palette.background.paper}`,
+  },
+}))(Avatar);
 
 function App() {
 
@@ -240,12 +253,28 @@ setMonthTargetsDialogSavingAllowed(false);
   
 
   /* -- data handling --*/
+
   const dataTableDataColumns = (width) => [
-      {  minWidth:width*0.3 - theme.spacing(2), header: "Date", name:"date",  cell:(row) => dateTimeFormat.format(new Date(row.date))},
-      {  minWidth:width*0.05 - theme.spacing(2), header: "Value", name:"value", alignItems: "right",      cell:(row) => Config.toCurrencyValue(row.value ?? 0)} ,
-      {  minWidth:width*0.2 - theme.spacing(2), header: "Remunerator", name: "remunerator" },
-      {  minWidth:width*0.2 - theme.spacing(2), header: "Category",    name: "category"    },
-      {  minWidth:width*0.2 - theme.spacing(2), header: "Info",        name: "info"        }
+      {  width:60, header: "", name: "remunerator", cell:row => (
+        <div className={classes.root}> <Badge
+        overlap="circle"
+        anchorOrigin={{
+          vertical: 'bottom',
+          horizontal: 'right',
+        }}
+        badgeContent={
+          <SmallAvatar alt={row.category} 
+        src={Config.staticAssets +"/categories/" + row.category.toLowerCase().replace(" ","-") + ".png"}
+        />}
+      >
+        <Avatar alt={row.remunerator} src={Config.staticAssets + "/avatars/" + row.remunerator.toLowerCase().replace(" ","-") + ".jpg"} />
+        </Badge>
+        </div>) },
+      {   header: "Date", name:"date",  cell:(row) => dateTimeFormat.format(new Date(row.date))},
+      {   header: "Value", name:"value", alignItems: "right",      cell:(row) => Config.toCurrencyValue(row.value ?? 0)} ,
+      {   header: "Category",    name: "category", cell:row => (
+        <Chip label={row.category} variant="outlined" size="small" avatar={<Avatar src={Config.staticAssets +"/categories/" + row.category.toLowerCase().replace(" ","-") + ".png"} />} />) },
+      {  header: "Info",        name: "info"        }
     ];
   const [dataEntries,setDataEntries] = useState([]);
   const [accountValues,setAccountValues] = useState(new Accounts());
@@ -311,6 +340,7 @@ setMonthTargetsDialogSavingAllowed(false);
   const [entryInfo,setEntryInfo] = useState({value:"",error:null});
   
   const [IsAddEntryDialogOpen, addEntryDialogOpen] = useState(false); // hidden dialogs
+  const [expandAddEntryDialog, setExpandAddEntryDialog] = useState(false);
     const showAddEntryDialog = (id) => {
     
     setSelectedEntryId(id);
@@ -319,7 +349,7 @@ setMonthTargetsDialogSavingAllowed(false);
       setEntryDate({value:new Date(),error:null});
       setEntryValue({value:0,error:null});
       setEntryCategory({value:"",error:null});
-      setEntryRemunerator({value:"",error:null});
+      setEntryRemunerator({value:userProfile.fullname,error:null});
       setEntryInfo({value:"",error:null});
     }
     addEntryDialogOpen(true);
@@ -544,7 +574,7 @@ setMonthTargetsDialogSavingAllowed(false);
         <Box>
             <TextField id={target.category}
               InputProps={{
-                startAdornment: <InputAdornment position="start"><MonetizationOnIcon /></InputAdornment>,
+                startAdornment: <InputAdornment position="start"><SmallAvatar src={Config.staticAssets +"/categories/" + target.category.toLowerCase().replace(" ","-") + ".png"} /></InputAdornment>,
               }}
               type="number"
               label={target.category}
@@ -580,7 +610,7 @@ setMonthTargetsDialogSavingAllowed(false);
           <DatePicker
             disableToolbar
             variant="inline"
-            format="MM/dd/yyyy"
+            format={Config.pickerDateTimeFormat}
             margin="normal"
             id="entry-date"
             label="Date of purchase"
@@ -604,20 +634,6 @@ setMonthTargetsDialogSavingAllowed(false);
           onChange={(e) => setEntryValue({value:ensureMonetaryValue(e.target.value),error:null})}
         />
         
-        <FormControl className={classes.formControl}>
-          <InputLabel id="addEntryRemuneratorLabel">Remunerator</InputLabel>
-          <Select
-           labelId="addEntryRemuneratorLabel"
-           value={entryRemunerator.value} onChange={(e) => setEntryRemunerator({value:e.target.value,error:null})}
-           fullWidth
-           
-           >
-          {accountValues.remunerators.map( (user) =>
-            <MenuItem value={user}>{user}</MenuItem>
-          )}
-          </Select>
-          
-        </FormControl>
         <FormControl className={classes.formControl }>
         <InputLabel id="addEntryCategoryLabel">Category</InputLabel>
           <Select
@@ -627,35 +643,16 @@ setMonthTargetsDialogSavingAllowed(false);
            
            >
           {accountValues.categories.map( (category) =>
-            <MenuItem value={category}>{category}</MenuItem>
+            <MenuItem value={category}>
+              <Chip label={category} variant="outlined" size="small" avatar={<Avatar src={Config.staticAssets +"/categories/" + category.toLowerCase().replace(" ","-") + ".png"} />} />
+              </MenuItem>
           )}
           </Select>
           
         </FormControl>
-        <FormGroup row>
-          <TextField id="entry-remunerator"
-            label="Remunerator"
-            InputProps={{
-              startAdornment: <InputAdornment position="start"><AccountCircle /></InputAdornment>,
-            }}
-            className="col-md-2"
-            value={entryRemunerator.value}
-            onChange={(e) => setEntryRemunerator({value:e.target.value,error:null})}
-            />
-          <TextField id="entry-category"
-            label="Category"
-            className="col-md-2"
-            InputProps={{
-              startAdornment: <InputAdornment position="start"><CheckCircleIcon /></InputAdornment>,
-            }}
-            
-            value={entryCategory.value}
-            onChange={(e) => setEntryCategory({value:e.target.value,error:null})}
-            />
-          
-        </FormGroup>
-
-        <TextField id="entry-info"
+        <FormControl className={classes.formControl }>
+        
+          <TextField id="entry-info"
             label="Info"
             InputProps={{
               startAdornment: <InputAdornment position="start"><InfoIcon /></InputAdornment>,
@@ -665,6 +662,65 @@ setMonthTargetsDialogSavingAllowed(false);
             value={entryInfo.value}
             onChange={(e) => setEntryInfo({value:e.target.value,error:null})}
           />
+        </FormControl>
+
+        <ExpansionPanel expanded={expandAddEntryDialog} onChange={e => setExpandAddEntryDialog(!expandAddEntryDialog)}>
+            <ExpansionPanelSummary expandIcon={<ExpandMoreIcon />}
+          >
+              More
+            </ExpansionPanelSummary>
+          <ExpansionPanelDetails>
+            <div className={classes.form}>
+            <FormControl className={classes.formControl}>
+              <InputLabel id="addEntryRemuneratorLabel">Remunerator</InputLabel>
+              <Select
+              labelId="addEntryRemuneratorLabel"
+              value={entryRemunerator.value} onChange={(e) => setEntryRemunerator({value:e.target.value,error:null})}
+              fullWidth
+              
+              >
+              {accountValues.remunerators.map( (user) =>
+                <MenuItem value={user}>
+                  <Chip label={user} variant="outlined" size="small" avatar={<Avatar src={Config.staticAssets +"/avatars/" + user.toLowerCase().replace(" ","-") + ".jpg"} />} />
+                </MenuItem>
+              )}
+              </Select>
+              
+            </FormControl>
+
+            <FormControl className={classes.formControl}>
+              <Grid container spacing={1}>
+                <Grid item>
+                  <TextField id="entry-remunerator"
+                    label="Remunerator"
+                    InputProps={{
+                      startAdornment: <InputAdornment position="start"><AccountCircle /></InputAdornment>,
+                    }}
+                    value={entryRemunerator.value}
+                    onChange={(e) => setEntryRemunerator({value:e.target.value,error:null})}
+                    fullWidth
+                    />
+
+                </Grid>
+                <Grid item>
+                  <TextField id="entry-category"
+                    label="Category"
+                    InputProps={{
+                      startAdornment: <InputAdornment position="start"><CheckCircleIcon /></InputAdornment>,
+                    }}
+                    fullWidth
+                    value={entryCategory.value}
+                    onChange={(e) => setEntryCategory({value:e.target.value,error:null})}
+                    />
+
+                </Grid>
+              </Grid>
+              
+            </FormControl>
+            </div>
+          </ExpansionPanelDetails>
+        </ExpansionPanel>
+        
 
       </DialogContent>
       <DialogActions  className={classes.dialogActions}>
@@ -733,7 +789,7 @@ setMonthTargetsDialogSavingAllowed(false);
           <AutoSizer>
             {({height, width}) => (
 
-              <MuiVirtualizedTable className={classes.table}
+              <EntriesTable className={classes.table}
               width={width}
               height={height}
               fixedRowCount={1}
@@ -741,11 +797,10 @@ setMonthTargetsDialogSavingAllowed(false);
               rowHeight={48}
               data={dataEntries}
               includeHeaders={true}
-              dense
-              cellProps={{ style: { paddingLeft: theme.spacing(1), paddingRight: theme.spacing(1) } }}
+              cellProps={{ style: { overflow:"visible", paddingLeft: theme.spacing(1), paddingRight: theme.spacing(1),paddingBottom:0,paddingTop:0 } }}
               onCellClick={(column, rowData) => beginEditEntry(rowData._id, column.name)}
               >
-              </MuiVirtualizedTable>
+              </EntriesTable>
             )}
           </AutoSizer>
     

@@ -175,7 +175,10 @@ export class Accounts {
                 for (let jndex = 0; jndex < catMonth.totals.length; jndex++) {
                     const ce = catMonth.totals[jndex];
                     var target = element.totals.find((e) => e.category === ce.category);
-                    sum += target.value;
+                    if(target)
+                    {
+                        sum += target.value;
+                    }
                 }
                         
                 return sum;

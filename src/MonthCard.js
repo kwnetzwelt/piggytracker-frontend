@@ -3,7 +3,7 @@ import { makeStyles } from '@material-ui/core/styles';
 
 import Config from './Config';
 import { blueGrey } from '@material-ui/core/colors';
-import { Card, CardHeader, IconButton, CardMedia, CardContent, Typography, LinearProgress, Table, TableBody, TableCell, TableRow } from '@material-ui/core';
+import { Card, CardHeader, IconButton, CardMedia, CardContent, Typography, LinearProgress, Table, TableBody, TableCell, TableRow, Chip, Avatar } from '@material-ui/core';
 import MoreVertIcon from '@material-ui/icons/MoreVert';
 import Grid from '@material-ui/core/Grid';
 
@@ -82,7 +82,8 @@ export default function MonthCard(props) {
                         <TableBody>
                         {props.accounts.categories.map((category) =>
                           <TableRow key={category}>
-                            <TableCell>{category}</TableCell>
+                            <TableCell>
+                            <Chip label={category} variant="outlined" size="small" avatar={<Avatar src={Config.staticAssets +"/categories/" + category.toLowerCase().replace(" ","-") + ".png"} />} /></TableCell>
                             <TableCell className={props.accounts.getTargetStatus(props.monthCategories.tid, category,props.monthCategories.getValueInCategory(category) ?? 0) === "CRIT" ? classes.critical:classes.root} align="right">{Config.toCurrencyValue(props.monthCategories.getValueInCategory(category) ?? 0)}</TableCell>
                             <TableCell align="right">{Config.toCurrencyValue(props.accounts.getTargetValue(props.monthCategories.tid, category))}</TableCell>
                           </TableRow>
