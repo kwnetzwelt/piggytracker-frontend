@@ -20,7 +20,7 @@ import './App.css';
 import axios from 'axios';
 import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
-import { Avatar, TextField, InputLabel, ThemeProvider, createMuiTheme, Box, withStyles, Badge, Chip, ExpansionPanel, ExpansionPanelSummary, ExpansionPanelDetails } from '@material-ui/core';
+import { Avatar, TextField, InputLabel, ThemeProvider, createMuiTheme, Box, withStyles, Badge, Chip, ExpansionPanel, ExpansionPanelSummary, ExpansionPanelDetails, Container } from '@material-ui/core';
 
 import {BottomNavigation, BottomNavigationAction} from '@material-ui/core';
 import DateFnsUtils from '@date-io/date-fns';
@@ -536,7 +536,7 @@ setMonthTargetsDialogSavingAllowed(false);
             <MenuIcon />
           </IconButton>
           <Typography variant="h6" className={classes.title}>
-            Haushalt
+            Piggy
           </Typography>
           {!loggedIn ?
             <Button onClick={showLoginDialog} color="inherit">Login</Button>
@@ -783,7 +783,11 @@ setMonthTargetsDialogSavingAllowed(false);
       </DialogActions>
       </form>
       </Dialog>
-              
+      {!loggedIn &&
+        <Container maxWidth="sm">
+          <Typography component="div" style={{ backgroundImage: "url('icon.png')", backgroundPosition:"center center", backgroundSize: "contain", backgroundRepeat:"no-repeat" , height: '90vh' }} />
+        </Container>
+      }    
       {loggedIn && (currentView === "entries") && 
         <div style={{ height: 'calc(90vh)' }}>
           <AutoSizer>

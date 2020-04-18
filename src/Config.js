@@ -1,4 +1,4 @@
-module.exports = class Config {
+const Config =class {
 
     static apiEndpoint = "http://192.168.0.130:3030";
     static staticAssets = "http://192.168.0.130:3030/static/";
@@ -13,3 +13,4 @@ module.exports = class Config {
     static getAvatarUrl = (fullName) => this.staticAssets + "/avatars/" + fullName.toLowerCase().replace(" ","-") + ".jpg";
     static getMonthImageUrl = (monthCategories) => this.staticAssets + "month/" + (monthCategories.month).toString().padStart(2,"0") + ".jpg"
 }
+export default Config;
