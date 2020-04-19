@@ -4,6 +4,7 @@ import { makeStyles } from '@material-ui/core/styles';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import Fab from '@material-ui/core/Fab';
 import AddIcon from '@material-ui/icons/Add';
+import EmojiEventsIcon from '@material-ui/icons/EmojiEvents';
 import AppBar from '@material-ui/core/AppBar';
 import Toolbar from '@material-ui/core/Toolbar';
 import Typography from '@material-ui/core/Typography';
@@ -408,7 +409,7 @@ setMonthTargetsDialogSavingAllowed(false);
   const [userProfile,setUserProfile] = useState(null);
   const [IsLoginDialogOpen, loginDialogOpen] = useState(false); // hidden dialogs
   const [loggedIn, setLoggedIn] = useState(false);
-  const views = ["entries","accounts"];
+  const views = ["entries","accounts","wastrel"];
   const [currentView, setCurrentView] = useState("entries");
   const [avatarContextMenuAnchor, setAvatarContextMenuAnchor] = useState(null);
   const avatarDisplay = createRef();
@@ -487,13 +488,17 @@ setMonthTargetsDialogSavingAllowed(false);
     }
     setAvatarContextMenuAnchor(null);
   }
+  const getUserInitials = (fullname) => {
+    
+    var initials = fullname.split(' ');
+    if(initials.length >= 2)
+      return initials[0].charAt(0).toUpperCase() + initials[initials.length-1].charAt(0).toUpperCase();
+    else
+      return fullname.charAt(0).toUpperCase();
+  }
 
   const transformUserProfile = (profileData) => {
-    var initials = profileData.fullname.split(' ');
-    if(initials.length >= 2)
-      profileData.initials = initials[0].charAt(0).toUpperCase() + initials[initials.length-1].charAt(0).toUpperCase();
-    else
-      profileData.initials = profileData.fullname.charAt(0).toUpperCase()
+    profileData.initials = getUserInitials(profileData.fullname);
     return profileData;
   }
   const submitLoginDialog = (e) => {
@@ -787,7 +792,21 @@ setMonthTargetsDialogSavingAllowed(false);
         <Container maxWidth="sm">
           <Typography component="div" style={{ backgroundImage: "url('icon.png')", backgroundPosition:"center center", backgroundSize: "contain", backgroundRepeat:"no-repeat" , height: '90vh' }} />
         </Container>
-      }    
+      }   
+      {loggedIn && currentView === "wastrel" && 
+        <div style={{ height: 'calc(90vh)' }}>
+          {accountValues.remuneratorSpendings.map((wastrel) =>
+            <Grid container>
+              <Grid item>
+                <Avatar alt={getUserInitials(wastrel.remunerator)} src={Config.getAvatarUrl(wastrel.remunerator)} />
+              </Grid>
+              <Grid item>
+                {wastrel.value}
+              </Grid>
+            </Grid>
+          )}
+        </div>
+      } 
       {loggedIn && (currentView === "entries") && 
         <div style={{ height: 'calc(90vh)' }}>
           <AutoSizer>
@@ -849,7 +868,8 @@ setMonthTargetsDialogSavingAllowed(false);
 
 
   <BottomNavigationAction label="Entries" icon={<ReceiptIcon />} />
-  <BottomNavigationAction label="Accounts" icon={<AccountBalanceIcon />} />
+  <BottomNavigationAction label="Months" icon={<AccountBalanceIcon />} />
+  <BottomNavigationAction label="Wastrel" icon={<EmojiEventsIcon />} />
 </BottomNavigation>
       {loggedIn &&
         <Fab color="primary" aria-label="add" className={classes.fab} onClick={(e) => showAddEntryDialog()}>

@@ -78,7 +78,13 @@ export class MonthCategories {
 
 }
 
-
+export class Wastrel {
+    constructor(remunerator)
+    {
+        this.remunerator = remunerator;
+        this.value = 0;
+    }
+}
 export class Target {
     constructor(obj){
         this._id = obj._id ? obj._id : undefined;
@@ -124,7 +130,10 @@ export class Accounts {
             }
         }
 
-        this.remuneratorSpendings = {};
+        /**
+         * @property {Wastrel[]}
+         */
+        this.remuneratorSpendings = [];
         /**
          * @property {CategoryAccount[]}
          */
@@ -250,9 +259,13 @@ export class Accounts {
     addEntry (entry) {
       var found = false;
       
-        if(!this.remuneratorSpendings[entry.remunerator])
-        this.remuneratorSpendings[entry.remunerator] = 0;
-      this.remuneratorSpendings[entry.remunerator] += entry.value;
+        var wastrel = this.remuneratorSpendings.find((e) => e.remunerator === entry.remunerator);
+        if(!wastrel)
+        {
+            wastrel = new Wastrel(entry.remunerator);
+            this.remuneratorSpendings.push(wastrel);
+        }
+        wastrel.value += entry.value;
       
 
         found = false;
