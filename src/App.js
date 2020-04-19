@@ -41,7 +41,6 @@ import Config from './Config.js';
 import {Accounts, MonthCategories} from './Accounts.js';
 import Grid from '@material-ui/core/Grid';
 import FormControl from '@material-ui/core/FormControl';
-import FormGroup from '@material-ui/core/FormGroup';
 import Select from '@material-ui/core/Select';
 
 import {red,blueGrey} from '@material-ui/core/colors';
@@ -49,6 +48,7 @@ import MonthCard from './MonthCard';
 
 
 import PopupState, { bindTrigger, bindMenu } from 'material-ui-popup-state';
+import WastrelCard from './WastrelCard';
 
 
 const theme = createMuiTheme({
@@ -814,17 +814,16 @@ setMonthTargetsDialogSavingAllowed(false);
         </Container>
       }   
       {loggedIn && currentView === "wastrel" && 
-        <div style={{ height: 'calc(90vh)' }}>
-          {accountValues.remuneratorSpendings.map((wastrel) =>
-            <Grid container>
+        
+        <div style={{ height: 'calc(90vh)',paddingLeft: 20, paddingRight: 20,paddingTop: 20 }}>
+              <Grid container justify="center" spacing={2} className={classes.accountsGrid}>
+          {accountValues.remuneratorSpendings.map((wastrel,i,all) =>
               <Grid item>
-                <Avatar alt={getUserInitials(wastrel.remunerator)} src={Config.getAvatarUrl(wastrel.remunerator)} />
+                <WastrelCard wastrel={wastrel} next={(all.length > (i+1))?all[i+1]:undefined} item />
               </Grid>
-              <Grid item>
-                {wastrel.value}
-              </Grid>
-            </Grid>
+              
           )}
+          </Grid>
         </div>
       } 
       {loggedIn && (currentView === "entries") && 
