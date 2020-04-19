@@ -1,9 +1,21 @@
-# Frontend for Haushalt
+# Frontend for Piggi
 
-This app was created using create-react-app and uses material-ui extensively. 
+This app was created using create-react-app and uses material-ui extensively. It requires a backend-service to connect to. 
 
+This project helps to manage tracking your monthly expenses within your household. You can add an entry (something you purchased or a bill you received and payed). Each entry contains a date, value, category, remunerator (who paid for it) and a comment. Edit entries by tapping on them in the list. 
+
+For each month (also for the upcoming month) you can create targets in the Details Menu of the Month. 
+
+Make sure to setup the configuration before running the app!
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+
+## Configuration
+
+### src/Config.js
+
+Please review src/Config.js to setup your environment. 
+
 
 ## Available Scripts
 
