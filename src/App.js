@@ -48,6 +48,7 @@ import {red,blueGrey} from '@material-ui/core/colors';
 import MonthCard from './MonthCard';
 
 
+import PopupState, { bindTrigger, bindMenu } from 'material-ui-popup-state';
 
 
 const theme = createMuiTheme({
@@ -411,7 +412,6 @@ setMonthTargetsDialogSavingAllowed(false);
   const [loggedIn, setLoggedIn] = useState(false);
   const views = ["entries","accounts","wastrel"];
   const [currentView, setCurrentView] = useState("entries");
-  const [avatarContextMenuAnchor, setAvatarContextMenuAnchor] = useState(null);
   const avatarDisplay = createRef();
   
   const getAuthHeader = () => {
@@ -474,19 +474,18 @@ setMonthTargetsDialogSavingAllowed(false);
   }
   const showLoginDialog = () => {
     loginDialogOpen(true);
+    setLoginError("");
+    setLoginUsername({value:loginUsername,error:null});
+    setLoginPassword({value:loginPassword,error:null});
   }
   const hideLoginDialog = () => {
     loginDialogOpen(false);
-  }
-  const showAvatarContextMenu = () => {
-    setAvatarContextMenuAnchor(avatarDisplay.current);
   }
   const hideAvatarContextMenu = (event) => {
     if(event.currentTarget.id === "avatar-context-menu-logout")
     {
       logout();
     }
-    setAvatarContextMenuAnchor(null);
   }
   const getUserInitials = (fullname) => {
     
@@ -501,7 +500,11 @@ setMonthTargetsDialogSavingAllowed(false);
     profileData.initials = getUserInitials(profileData.fullname);
     return profileData;
   }
+  const [submittingLogin, setSubmittingLogin] = useState(false);
+  const [loginError, setLoginError] = useState("");
   const submitLoginDialog = (e) => {
+    setSubmittingLogin(true);
+    setLoginError("");
     e.preventDefault();
     setLoginUsername({value:loginUsername.value,error:null});
     setLoginPassword({value:loginPassword.value,error:null});
@@ -511,18 +514,29 @@ setMonthTargetsDialogSavingAllowed(false);
     };
     axios.post(apiEndpoint + '/login',body
     ).then(result => {
+      setSubmittingLogin(false);
+      setLoginError("");
       storeAuthToken(result.data.token);
       hideLoginDialog();
       // tryout token now to get userProfile and begin using the app
       restoreUserProfile(); 
     }).catch(error => {
+      setSubmittingLogin(false);
       console.error(error);
-      if(error.response.data.message === "user not found")
+      if(error.response)
       {
-        setLoginUsername({value:loginUsername.value,error:"Invalid Username"});
+        if(error.response.data.message === "user not found")
+        {
+          setLoginError("Invalid Username");
+          setLoginUsername({value:loginUsername.value,error:"Invalid Username"});
+        }else
+        {
+          setLoginError("Invalid Password");
+          setLoginPassword({value:loginPassword.value,error:"Invalid Password"});
+        }
       }else
       {
-        setLoginPassword({value:loginPassword.value,error:"Invalid Password"});
+        setLoginError(error.message);
       }
     });
   }
@@ -541,34 +555,34 @@ setMonthTargetsDialogSavingAllowed(false);
             <MenuIcon />
           </IconButton>
           <Typography variant="h6" className={classes.title}>
-            Piggy
+            Piggi
           </Typography>
           {!loggedIn ?
             <Button onClick={showLoginDialog} color="inherit">Login</Button>
             :
-            <Avatar ref={avatarDisplay} aria-controls="avatar-context-menu" aria-haspopup="true" onClick={showAvatarContextMenu} src={Config.staticAssets + userProfile.avatarUrl}>{userProfile.initials}</Avatar>
-            
+            <PopupState variant="popover" popupId="demo-popup-menu">
+            {(popupState) => (
+              <React.Fragment>
+                <Avatar ref={avatarDisplay} 
+                  aria-controls="avatar-context-menu" 
+                  aria-haspopup="true" 
+                  {...bindTrigger(popupState)}
+                  src={Config.staticAssets + userProfile.avatarUrl}
+                  style={{cursor:"pointer"}}
+                  >{userProfile.initials}</Avatar>
+                <Menu {...bindMenu(popupState)} anchorOrigin={{horizontal:"right", vertical:"left"}}>
+                  <MenuItem id="avatar-context-menu-fullname">{userProfile.fullname}</MenuItem>
+                  <MenuItem onClick={hideAvatarContextMenu} id="avatar-context-menu-logout">Logout</MenuItem>
+                </Menu>
+              </React.Fragment>
+            )}
+            </PopupState>
           }
         </Toolbar>
       </AppBar>
       
     
-      {/* AVATAR CONTEXT MENU */}
-      <Menu
-        id="avatar-context-menu"
-        anchorEl={avatarContextMenuAnchor}
-        keepMounted
-        open={Boolean(avatarContextMenuAnchor)}
-        onClose={hideAvatarContextMenu}
-      >
-        {!loggedIn ?
-          <MenuItem id="avatar-context-menu-fullname">ee</MenuItem>
-          :
-          <MenuItem id="avatar-context-menu-fullname">{userProfile.fullname}</MenuItem>
-        }
-        <MenuItem onClick={hideAvatarContextMenu} id="avatar-context-menu-logout">Logout</MenuItem>
-      </Menu>
-
+      
 
 
       {/* MONTHLY TARGET DIALOG */}
@@ -779,11 +793,17 @@ setMonthTargetsDialogSavingAllowed(false);
         />
       </DialogContent>
       <DialogActions>
+        <Typography color="error" style={{fontWeight:"bold",flexGrow:1,paddingLeft:theme.spacing(2)}}>
+          {loginError}
+        </Typography>
+        {submittingLogin && 
+          <CircularProgress  size={12}></CircularProgress>
+        }
         <Button onClick={hideLoginDialog} color="primary">
           Cancel
         </Button>
-        <Button variant="contained" onClick={submitLoginDialog} color="primary">
-          Login
+        <Button disabled={submittingLogin} variant="contained" onClick={submitLoginDialog} color="primary">
+        Login
         </Button>
       </DialogActions>
       </form>
