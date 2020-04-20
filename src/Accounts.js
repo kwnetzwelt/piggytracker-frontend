@@ -230,10 +230,10 @@ export class Accounts {
     }
     getTargetForEditing (tid) {
         var target = this.targets.find((e) => e.tid === tid);
-        var targetToEdit = {tid:tid,totals:[]};
+        var targetToEdit = new Target({tid:tid,totals:[]});
 
         if(target)
-            targetToEdit = target;
+            targetToEdit = new Target(target);
         
         // ensure all categories are present
         for (let index = 0; index < this.categoryTotals.length; index++) {
