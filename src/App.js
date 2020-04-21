@@ -21,7 +21,7 @@ import './App.css';
 import axios from 'axios';
 import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
-import { Avatar, TextField, InputLabel, ThemeProvider, createMuiTheme, Box, withStyles, Badge, Chip, ExpansionPanel, ExpansionPanelSummary, ExpansionPanelDetails, Container } from '@material-ui/core';
+import { Avatar, TextField, InputLabel, ThemeProvider, createMuiTheme, Box, withStyles, Badge, Chip, ExpansionPanel, ExpansionPanelSummary, ExpansionPanelDetails, Container, Paper, InputBase } from '@material-ui/core';
 
 import {BottomNavigation, BottomNavigationAction} from '@material-ui/core';
 import DateFnsUtils from '@date-io/date-fns';
@@ -45,7 +45,7 @@ import Select from '@material-ui/core/Select';
 
 import {red,blueGrey} from '@material-ui/core/colors';
 import MonthCard from './MonthCard';
-
+import InviteCode from './InviteCode';
 
 import PopupState, { bindTrigger, bindMenu } from 'material-ui-popup-state';
 import WastrelCard from './WastrelCard';
@@ -407,7 +407,7 @@ setMonthTargetsDialogSavingAllowed(false);
   const [loginUsername,setLoginUsername] = useState({value:"JohnDoe",error:null});
   const [loginPassword,setLoginPassword] = useState({value:"123456",error:null});
 
-  const [userProfile,setUserProfile] = useState(null);
+  const [userProfile,setUserProfile] = useState({groupName:""});
   const [IsLoginDialogOpen, loginDialogOpen] = useState(false); // hidden dialogs
   const [loggedIn, setLoggedIn] = useState(false);
   const views = ["entries","accounts","wastrel"];
@@ -482,7 +482,11 @@ setMonthTargetsDialogSavingAllowed(false);
     loginDialogOpen(false);
   }
   const hideAvatarContextMenu = (event) => {
-    if(event.currentTarget.id === "avatar-context-menu-logout")
+    if(event.currentTarget.id === "avatar-context-menu-settings")
+    {
+      setIsUserProfileSettingsDialogOpen(true);
+    }
+    else if(event.currentTarget.id === "avatar-context-menu-logout")
     {
       logout();
     }
@@ -546,6 +550,47 @@ setMonthTargetsDialogSavingAllowed(false);
       restoreUserProfile();
     }
   }
+
+
+  /* User Profile Dialog */
+  const inviteCodeElement = React.useRef();
+  const [generatedInviteCode, setGeneratedInviteCode] = useState("");
+  const [IsUserProfileSettingsDialogOpen, setIsUserProfileSettingsDialogOpen] = useState(false);
+  const hideUserProfileSettingsDialog = () => {
+    setIsUserProfileSettingsDialogOpen(false);
+  }
+  const getNewInviteCode = (inviteCodeElement) => {
+
+    axios({method:"GET",url:apiEndpoint + '/invite', headers:getAuthHeader()}
+    ).then(result => {
+      setGeneratedInviteCode(result.data.code);
+      inviteCodeElement.current.setCodeValue(result.data.code);
+    }).catch(error => {
+    });
+  }
+
+  const storeInviteCode = (inviteCodeElement) => {
+    axios({method:"POST",url:apiEndpoint + '/invite', headers:getAuthHeader(), data:{code:inviteCodeElement.substr(0,9)}, }
+    ).then(result => {
+      
+      var receivedUserProfile = transformUserProfile(result.data);
+      setUserProfile (receivedUserProfile);
+      
+    }).catch(error => {
+    });
+  }
+  
+  const leaveGroup = (inviteCodeElement) => {
+    axios({method:"DELETE",url:apiEndpoint + '/invite', headers:getAuthHeader()} ).then(result => {
+      
+      var receivedUserProfile = transformUserProfile(result.data);
+      setUserProfile (receivedUserProfile);
+      
+    }).catch(error => {
+    });
+    
+  }
+
   return (
     <div className="App">
       <ThemeProvider theme={theme}>
@@ -572,6 +617,8 @@ setMonthTargetsDialogSavingAllowed(false);
                   >{userProfile.initials}</Avatar>
                 <Menu {...bindMenu(popupState)} anchorOrigin={{horizontal:"right", vertical:"left"}}>
                   <MenuItem id="avatar-context-menu-fullname">{userProfile.fullname}</MenuItem>
+                  <MenuItem id="avatar-context-menu-settings" onClick={hideAvatarContextMenu}>Settings</MenuItem>
+                  
                   <MenuItem onClick={hideAvatarContextMenu} id="avatar-context-menu-logout">Logout</MenuItem>
                 </Menu>
               </React.Fragment>
@@ -583,7 +630,29 @@ setMonthTargetsDialogSavingAllowed(false);
       
     
       
-
+      {/* User Profile Settings */}
+      
+      <Dialog open={IsUserProfileSettingsDialogOpen} onClose={hideUserProfileSettingsDialog} aria-labelledby="form-dialog-add-entry-title">
+        <DialogTitle id="form-dialog-add-entry-title">Profile Settings</DialogTitle>
+        <DialogContent>
+         <InviteCode ref={inviteCodeElement} refreshClicked={getNewInviteCode} 
+         saveClicked={storeInviteCode} groupName={userProfile.groupName} 
+         length
+         setValue={setGeneratedInviteCode}
+         value={generatedInviteCode} leaveClicked={leaveGroup} user={userProfile} />
+        </DialogContent>
+        <DialogActions>
+        <Button onClick={hideUserProfileSettingsDialog} color="primary">
+          Cancel
+        </Button>
+        <div className={classes.wrapper}>
+        <Button variant="contained" disabled={monthTargetsDialogSavingAllowed} onClick={submitMonthTargetsDialog} color="primary" disableElevation>
+          Save
+        </Button>
+        {monthTargetsDialogSavingAllowed && <CircularProgress size={24} className={classes.buttonProgress} />}
+        </div>
+      </DialogActions>
+      </Dialog>
 
       {/* MONTHLY TARGET DIALOG */}
       <Dialog open={IsMonthTargetsDialogOpen} onClose={hideMonthTargetsDialog} aria-labelledby="form-dialog-add-entry-title">
