@@ -256,7 +256,8 @@ setMonthTargetsDialogSavingAllowed(false);
 
   /* -- data handling --*/
 
-  const dataTableDataColumns = (width) => [
+  const dataTableDataColumns = (width) => {
+    const arr = [
       {  width:60, header: "", name: "remunerator", cell:row => (
         <div className={classes.root}> <Badge
         overlap="circle"
@@ -272,12 +273,19 @@ setMonthTargetsDialogSavingAllowed(false);
         <Avatar alt={row.remunerator} src={Config.getAvatarUrl(row.remunerator)} />
         </Badge>
         </div>) },
-      {   header: "Date", name:"date",  cell:(row) => dateTimeFormat.format(new Date(row.date))},
-      {   header: "Value", name:"value", alignItems: "right",      cell:(row) => Config.toCurrencyValue(row.value ?? 0)} ,
-      {   header: "Category",    name: "category", cell:row => (
-      <Chip label={row.category} variant="outlined" size="small" avatar={<Avatar src={Config.getCategoryUrl(row.category)} />} />) },
-      {  header: "Info",        name: "info"        }
+      {   header: "Date", width: 91 , name:"date",  cell:(row) => dateTimeFormat.format(new Date(row.date))},
+      {   header: "Value",  name:"value", alignItems: "right",      cell:(row) => Config.toCurrencyValue(row.value ?? 0)} ,
+      {   header: "Category", name: "category", cell:row => (
+      <Chip label={row.category} variant="outlined" size="small" avatar={<Avatar src={Config.getCategoryUrl(row.category)} />} />) }
+      
+      
     ];
+    if(window.matchMedia("(orientation: landscape)").matches)
+    {
+      arr.push({  header: "Info",        name: "info"   , cell:(row) => row.info.substr(0,1)     });
+    }
+    return arr;
+  };
   const [dataEntries,setDataEntries] = useState([]);
   const [accountValues,setAccountValues] = useState(new Accounts());
   const [selectedEntryId,setSelectedEntryId] = useState(null);
@@ -903,12 +911,12 @@ setMonthTargetsDialogSavingAllowed(false);
               <EntriesTable className={classes.table}
               width={width}
               height={height}
-              fixedRowCount={1}
+              fixedRowCount={0}
               columns={dataTableDataColumns(width)}
               rowHeight={48}
               data={dataEntries}
               includeHeaders={true}
-              cellProps={{ style: { overflow:"visible", paddingLeft: theme.spacing(1), paddingRight: theme.spacing(1),paddingBottom:0,paddingTop:0 } }}
+              cellProps={{ style: { overflow:"hidden", paddingLeft: theme.spacing(1), paddingRight: theme.spacing(1),paddingBottom:0,paddingTop:0 } }}
               onCellClick={(column, rowData) => beginEditEntry(rowData._id, column.name)}
               >
               </EntriesTable>
