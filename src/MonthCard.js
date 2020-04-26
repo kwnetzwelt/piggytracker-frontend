@@ -37,6 +37,10 @@ export default function MonthCard(props) {
     expandOpen: {
       transform: 'rotate(180deg)',
     },
+    tableCells:
+    {
+      padding: "6px 1px 6px 16px"
+    }
   }));
 
   const classes = useStyles();
@@ -82,15 +86,15 @@ export default function MonthCard(props) {
                         <TableBody>
                         {props.accounts.categories.map((category) =>
                           <TableRow key={category}>
-                            <TableCell>
+                            <TableCell className={classes.tableCells}>
                             <Chip label={category} variant="outlined" size="small" avatar={<Avatar src={Config.staticAssets +"/categories/" + category.toLowerCase().replace(" ","-") + ".png"} />} /></TableCell>
-                            <TableCell className={props.accounts.getTargetStatus(props.monthCategories.tid, category,props.monthCategories.getValueInCategory(category) ?? 0) === "CRIT" ? classes.critical:classes.root} align="right">{Config.toCurrencyValue(props.monthCategories.getValueInCategory(category) ?? 0)}</TableCell>
+                            <TableCell className={props.accounts.getTargetStatus(props.monthCategories.tid, category,props.monthCategories.getValueInCategory(category) ?? 0) === "CRIT" ? classes.critical:classes.root, classes.tableCells} align="right">{Config.toCurrencyValue(props.monthCategories.getValueInCategory(category) ?? 0)}</TableCell>
                             <TableCell align="right">{Config.toCurrencyValue(props.accounts.getTargetValue(props.monthCategories.tid, category))}</TableCell>
                           </TableRow>
                         )}
                           <TableRow key="tots">
                             <TableCell></TableCell>
-                            <TableCell className={(props.monthCategories.totalsSum / props.accounts.getTargetValueMonth(props.monthCategories)) > Config.criticalThreshold ? classes.critical:classes.root} align="right">
+                            <TableCell className={(props.monthCategories.totalsSum / props.accounts.getTargetValueMonth(props.monthCategories)) > Config.criticalThreshold ? classes.critical:classes.root, classes.tableCells} align="right">
                               <strong>{Config.toCurrencyValue(props.monthCategories.totalsSum)}</strong></TableCell>
                             <TableCell align="right"><strong>{Config.toCurrencyValue(props.accounts.getTargetValueMonth(props.monthCategories))}</strong></TableCell>
                           </TableRow>

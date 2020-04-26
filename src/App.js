@@ -144,7 +144,7 @@ const useStyles = makeStyles((theme) => ({
   
   fab: {
     position: 'fixed',
-    bottom: theme.spacing(11),
+    bottom: theme.spacing(9),
     right: theme.spacing(2)
   },
   title: {
@@ -282,7 +282,7 @@ setMonthTargetsDialogSavingAllowed(false);
     ];
     if(window.matchMedia("(orientation: landscape)").matches)
     {
-      arr.push({  header: "Info",        name: "info"   , cell:(row) => row.info.substr(0,1)     });
+      arr.push({  header: "Info",        name: "info"   , cell:(row) => row.info.substr(0,10)+"..."     });
     }
     return arr;
   };
@@ -608,7 +608,7 @@ setMonthTargetsDialogSavingAllowed(false);
             <MenuIcon />
           </IconButton>
           <Typography variant="h6" className={classes.title}>
-            Piggi
+            piggytracker
           </Typography>
           {!loggedIn ?
             <Button onClick={showLoginDialog} color="inherit">Login</Button>
