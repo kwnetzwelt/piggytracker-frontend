@@ -1,0 +1,33 @@
+# Official framework image. Look for the different tagged releases at:
+# https://hub.docker.com/r/library/node/tags/
+#image: node:8-alpine
+image: alpine
+
+stages:
+  - build
+#  - upload
+
+build:
+  only:
+    refs:
+      - master
+  stage: build
+  script:
+    - npm install -g serve
+    - npm run build
+  artifacts:
+    paths:
+    - build
+
+# upload:
+#   only:
+#     refs:
+#       - master
+#   stage: upload
+#   script:
+#     - mkdir -p ~/.ssh
+#     - which ssh-agent || ( apk --update add openssh-client )
+#     - eval $(ssh-agent -s)
+#     - echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config
+#     - echo "$SSH_PRIVATE_KEY" | ssh-add -
+#     - scp -r * $DEPLOY_USER@$DEPLOY_HOST:$DEPLOY_PATH
