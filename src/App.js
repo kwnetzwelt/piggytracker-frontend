@@ -887,7 +887,12 @@ setMonthTargetsDialogSavingAllowed(false);
       </Dialog>
       {!loggedIn &&
         <Container maxWidth="sm">
-          <Typography component="div" style={{ backgroundImage: "url('icon.png')", backgroundPosition:"center center", backgroundSize: "contain", backgroundRepeat:"no-repeat" , height: '90vh' }} />
+          <picture>
+              <source srcSet="icon.webp" type="image/webp" />
+              <source srcSet="icon.jpg" type="image/jpeg" />
+              <img src="" alt=""  style={{ height: '60vh' }} />
+          </picture>
+          
         </Container>
       }   
       {loggedIn && currentView === "wastrel" && 
