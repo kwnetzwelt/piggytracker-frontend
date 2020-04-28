@@ -886,13 +886,16 @@ setMonthTargetsDialogSavingAllowed(false);
       </form>
       </Dialog>
       {!loggedIn &&
-        <Container maxWidth="sm">
-          <picture>
-              <source srcSet="icon.webp" type="image/webp" />
-              <source srcSet="icon.jpg" type="image/jpeg" />
-              <img src="" alt=""  style={{ height: '60vh' }} />
-          </picture>
-          
+        <Container style={{ height: 'calc(90vh)', lineHeight:'calc(90vh)' }}>
+        
+              <picture>
+                <source srcSet="icon.webp" type="image/webp" />
+                <source srcSet="icon.jpg" type="image/jpeg" />
+                <img style={{ width: "40vmin", height:"40vmin",
+                verticalAlign:"middle",
+                marginLeft:"auto",marginRight:"auto"
+                }}/>              </picture>
+            
         </Container>
       }   
       {loggedIn && currentView === "wastrel" && 
