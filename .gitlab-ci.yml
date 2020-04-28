@@ -13,7 +13,7 @@ build:
       - master
   stage: build
   script:
-    - npm install --verbose
+    - npm ci --verbose
     - npm run build
   artifacts:
     paths:
