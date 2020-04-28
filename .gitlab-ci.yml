@@ -3,9 +3,13 @@
 #image: node:8-alpine
 image: node:lts
 
+cache:
+  paths:
+  - build
+
 stages:
   - build
-#  - upload
+  - upload
 
 build:
   only:
@@ -19,15 +23,15 @@ build:
     paths:
     - build
 
-# upload:
-#   only:
-#     refs:
-#       - master
-#   stage: upload
-#   script:
-#     - mkdir -p ~/.ssh
-#     - which ssh-agent || ( apk --update add openssh-client )
-#     - eval $(ssh-agent -s)
-#     - echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config
-#     - echo "$SSH_PRIVATE_KEY" | ssh-add -
-#     - scp -r * $DEPLOY_USER@$DEPLOY_HOST:$DEPLOY_PATH
+upload:
+  only:
+    refs:
+      - master
+  stage: upload
+  script:
+    - mkdir -p ~/.ssh
+    - which ssh-agent || ( apk --update add openssh-client )
+    - eval $(ssh-agent -s)
+    - echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config
+    - echo "$SSH_PRIVATE_KEY" | ssh-add -
+    - scp  -r build/ $DEPLOY_USER@$DEPLOY_HOST:$DEPLOY_PATH
