@@ -1,7 +1,7 @@
 # Official framework image. Look for the different tagged releases at:
 # https://hub.docker.com/r/library/node/tags/
 #image: node:8-alpine
-image: node:13-alpine
+image: node:lts
 
 stages:
   - build
@@ -13,7 +13,7 @@ build:
       - master
   stage: build
   script:
-    - npm install
+    - npm install --verbose
     - npm run build
   artifacts:
     paths:
