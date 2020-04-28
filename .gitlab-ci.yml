@@ -13,8 +13,8 @@ build:
       - master
   stage: build
   script:
-    - npm ci --verbose
-    - npm run build
+    - npm ci
+    - CI=false npm run build
   artifacts:
     paths:
     - build
