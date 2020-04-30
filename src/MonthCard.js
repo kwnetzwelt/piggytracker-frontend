@@ -90,7 +90,7 @@ export default function MonthCard(props) {
                             <Chip label={category} variant="outlined" size="small" avatar={<Avatar src={Config.staticAssets +"/categories/" + category.toLowerCase().replace(" ","-") + ".png"} />} /></TableCell>
                             <TableCell className={
                               props.accounts.getTargetStatus(props.monthCategories.tid, category,props.monthCategories.getValueInCategory(category) ?? 0) === "CRIT" ? classes.critical:classes.root + " " + classes.tableCells} align="right">{Config.toCurrencyValue(props.monthCategories.getValueInCategory(category) ?? 0)}</TableCell>
-                            <TableCell align="right">{Config.toCurrencyValue(props.accounts.getTargetValue(props.monthCategories.tid + " " +  category))}</TableCell>
+                            <TableCell align="right">{Config.toCurrencyValue(props.accounts.getTargetValue(props.monthCategories.tid ,  category))}</TableCell>
                           </TableRow>
                         )}
                           <TableRow key="tots">
