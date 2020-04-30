@@ -228,7 +228,7 @@ function App() {
   const submitMonthTargetsDialog = () => {
     setMonthTargetsDialogSavingAllowed(true);
       const updatedTargetData = accountValues.setTargets(monthTargetsObject.tid,catMonthTargets);
-      axios({method: updatedTargetData._id ? "PUT" : "POST",url : apiEndpoint + "/target" + (updatedTargetData._id ? ("/"+updatedTargetData._id) : ("")), headers: getAuthHeader(), data:updatedTargetData}).then( result => {
+      axios({method: updatedTargetData._id ? "PUT" : "POST",url : apiEndpoint + "/targets" + (updatedTargetData._id ? ("/"+updatedTargetData._id) : ("")), headers: getAuthHeader(), data:updatedTargetData}).then( result => {
         
         updatedTargetData._id = result.data._id;
         console.log("done");      
@@ -290,6 +290,7 @@ setMonthTargetsDialogSavingAllowed(false);
   const [accountValues,setAccountValues] = useState(new Accounts());
   const [selectedEntryId,setSelectedEntryId] = useState(null);
   const updateAccounts = (entries,targets) => {
+    debugger
     if(!targets)
       targets = accountValues.targets;
 
@@ -330,7 +331,7 @@ setMonthTargetsDialogSavingAllowed(false);
   }
 
   const deleteSelectedEntry = (e) => {
-    axios({method:"DELETE",url : apiEndpoint + "/bill/"+selectedEntryId, headers: getAuthHeader()}).then( result => {
+    axios({method:"DELETE",url : apiEndpoint + "/bills/"+selectedEntryId, headers: getAuthHeader()}).then( result => {
       hideAddEntryDialog();
       var index = dataEntries.findIndex((e) => e._id === selectedEntryId);
       dataEntries.splice(index,1);
@@ -371,7 +372,7 @@ setMonthTargetsDialogSavingAllowed(false);
   const submitAddEntryDialog = () => {
     var entry= 
     {
-      date : entryDate.value,
+      date : entryDate.value.toISOString().substr(0,10),
       value : entryValue.value,
       category:entryCategory.value.toString(),
       remunerator:entryRemunerator.value.toString(),
@@ -381,7 +382,7 @@ setMonthTargetsDialogSavingAllowed(false);
     {
      entry._id = selectedEntryId;
     }
-    axios({method:selectedEntryId ? "PUT" : "POST",url : apiEndpoint + "/bill" + (selectedEntryId ? ("/"+selectedEntryId) : ("")), headers: getAuthHeader(), data:entry}).then( result => {
+    axios({method:selectedEntryId ? "PUT" : "POST",url : apiEndpoint + "/bills" + (selectedEntryId ? ("/"+selectedEntryId) : ("")), headers: getAuthHeader(), data:entry}).then( result => {
 
       hideAddEntryDialog();
       
@@ -442,7 +443,7 @@ setMonthTargetsDialogSavingAllowed(false);
   const tempInsertData = [];
   const fetchAllData = (pageSize,page) => {
       axios({method:"GET",url : apiEndpoint + "/targets", headers:getAuthHeader()}).then( targetsResults => {
-        var targetsData = targetsResults.data.data;
+        var targetsData = targetsResults.data.data; // data
         axios({method:"GET",url : apiEndpoint + "/bills",params: {perPage:pageSize,page:page+1}, headers: getAuthHeader()}).then( result => {
           var data = result.data.data;
           var total = result.data.total;
