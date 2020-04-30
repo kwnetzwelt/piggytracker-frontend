@@ -290,7 +290,6 @@ setMonthTargetsDialogSavingAllowed(false);
   const [accountValues,setAccountValues] = useState(new Accounts());
   const [selectedEntryId,setSelectedEntryId] = useState(null);
   const updateAccounts = (entries,targets) => {
-    debugger
     if(!targets)
       targets = accountValues.targets;
 
