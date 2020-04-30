@@ -432,6 +432,10 @@ setMonthTargetsDialogSavingAllowed(false);
       setLoggedIn(true);
 
       fetchAllData(250,0); // fetch 15 at a time
+    
+    }).catch((err) => {
+      console.log("restoreUserProfile failed");
+      setLoggedIn(false);
     });
   }
 
