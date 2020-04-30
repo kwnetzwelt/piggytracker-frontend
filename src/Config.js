@@ -19,6 +19,6 @@ const Config =class {
     /** Getters for static content urls*/
     static getCategoryUrl = (category) => this.staticAssets +"/categories/" + category.toLowerCase().replace(" ","-") + ".png";
     static getAvatarUrl = (fullName) => this.staticAssets + "/avatars/" + fullName.toLowerCase().replace(" ","-") + ".jpg";
-    static getMonthImageUrl = (monthCategories) => this.staticAssets + "month/" + (monthCategories.month).toString().padStart(2,"0") + ".jpg"
+    static getMonthImageUrl = (monthCategories) => this.staticAssets + "/month/" + (monthCategories.month).toString().padStart(2,"0") + ".jpg"
 }
 export default Config;
