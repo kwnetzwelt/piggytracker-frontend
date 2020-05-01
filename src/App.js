@@ -289,13 +289,14 @@ setMonthTargetsDialogSavingAllowed(false);
     ];
     if(window.matchMedia("(orientation: landscape)").matches)
     {
-      arr.push({  header: "Info",        name: "info"   , cell:(row) => row.info.substr(0,10)+"..."     });
+      arr.push({  header: "Info",        name: "info"   , cell:(row) => {return (row.info.length > 10) ? row.info.substr(0,10)+"..." : row.info}     });
     }
     return arr;
   };
   const [dataEntries,setDataEntries] = useState([]);
   const [accountValues,setAccountValues] = useState(new Accounts());
   const [selectedEntryId,setSelectedEntryId] = useState(null);
+  const selectedEntryIdRef = React.useRef(selectedEntryId);
   const updateAccounts = (entries,targets) => {
     if(!targets)
       targets = accountValues.targets;
@@ -321,6 +322,7 @@ setMonthTargetsDialogSavingAllowed(false);
     {
       console.log("all is fine. future MonthCategory already in place. ");
     }
+    console.log(JSON.stringify(newAccountValues));
     setAccountValues(newAccountValues);
   }
 
@@ -341,7 +343,7 @@ setMonthTargetsDialogSavingAllowed(false);
       hideAddEntryDialog();
       var index = dataEntries.findIndex((e) => e._id === selectedEntryId);
       dataEntries.splice(index,1);
-      setDataEntries(dataEntries);
+      sortDataEntries();
       updateAccounts(dataEntries);
     }).catch(e => {
       hideAddEntryDialog();
@@ -359,8 +361,8 @@ setMonthTargetsDialogSavingAllowed(false);
   const [IsAddEntryDialogOpen, addEntryDialogOpen] = useState(false); // hidden dialogs
   const [expandAddEntryDialog, setExpandAddEntryDialog] = useState(false);
     const showAddEntryDialog = (id) => {
+    selectedEntryIdRef.current = id;
     
-    setSelectedEntryId(id);
     if(!id)
     {
       setEntryDate({value:new Date(),error:null});
@@ -372,6 +374,7 @@ setMonthTargetsDialogSavingAllowed(false);
     addEntryDialogOpen(true);
   }
   const hideAddEntryDialog = () => {
+    selectedEntryIdRef.current = null;
     addEntryDialogOpen(false);
   }
 
@@ -402,8 +405,8 @@ setMonthTargetsDialogSavingAllowed(false);
         //entry created successfully
         dataEntries.unshift(result.data);
       }
-
-      setDataEntries(dataEntries);
+      selectedEntryIdRef.current = null;
+      sortDataEntries();
       updateAccounts(dataEntries);
 
     }).catch(e => {
@@ -446,6 +449,63 @@ setMonthTargetsDialogSavingAllowed(false);
     });
   }
 
+  const sortDataEntries = () => {
+    dataEntries.sort( (e1,e2) => {
+      const v1 = (e1.date - e2.date) 
+      return v1 !== 0 ? v1 : e1.createdAt - e2.createdAt ;
+    });
+    setDataEntries(dataEntries);
+  }
+  const updateRate = 2500;
+  let lastUpdateRun = 0;
+  const runDataUpdate = () => {
+    if(selectedEntryIdRef.current)
+    {
+      scheduleDataUpdate();
+      return;
+    }
+
+    axios({method:"GET",url : apiEndpoint + "/targets", headers:getAuthHeader()}).then( targetsResults => {
+      const targetsData = targetsResults.data.data; // data
+      axios({method:"GET",url : apiEndpoint + "/updates",params: {updatedMillisecondsAgo:lastUpdateRun+500}, headers: getAuthHeader()}).then( result => {
+        const changedEntries = result.data.data;
+        for (let index = 0; index < changedEntries.length; index++) {
+          const element = changedEntries[index];
+          const e = dataEntries.findIndex((e) => e._id === element._id);
+          if(e === -1)
+          {
+            // new entry
+            dataEntries.push(element);
+          }
+          else
+          {
+            if(element.deleted)
+              dataEntries.splice(e,1);
+            else
+              dataEntries.splice(e,1,element);
+          }
+          console.log(JSON.stringify(element));
+        }
+        sortDataEntries();
+        updateAccounts(dataEntries,targetsData);
+        lastUpdateRun = 0;
+        scheduleDataUpdate();
+      }).catch(() => {
+        scheduleDataUpdate();
+
+      });
+    }).catch(() => {
+      scheduleDataUpdate();
+    });
+
+
+  }
+
+  const scheduleDataUpdate = () => {
+    lastUpdateRun+= updateRate;
+    setTimeout(runDataUpdate,updateRate);
+  }
+
   const tempInsertData = [];
   const fetchAllData = (pageSize,page) => {
       axios({method:"GET",url : apiEndpoint + "/targets", headers:getAuthHeader()}).then( targetsResults => {
@@ -456,7 +516,7 @@ setMonthTargetsDialogSavingAllowed(false);
 
           for (let index = 0; index < data.length; index++) {
             const element = data[index];
-            tempInsertData.push(element);
+            dataEntries.push(element);
           }
           if(total > (page * pageSize + data.length))
           {
@@ -464,8 +524,9 @@ setMonthTargetsDialogSavingAllowed(false);
           }else
           {
             
-            setDataEntries(entries => tempInsertData);
-            updateAccounts(tempInsertData,targetsData);
+            sortDataEntries();
+            updateAccounts(dataEntries,targetsData);
+            scheduleDataUpdate();
           }
         });
       });
@@ -653,7 +714,7 @@ setMonthTargetsDialogSavingAllowed(false);
     
       
       {/* User Profile Settings */}
-      
+      {userProfile && 
       <Dialog open={IsUserProfileSettingsDialogOpen} onClose={hideUserProfileSettingsDialog} aria-labelledby="form-dialog-add-entry-title">
         <DialogTitle id="form-dialog-add-entry-title">Profile Settings
           <IconButton aria-label="close" className={classes.dialogCloseButton} onClick={hideUserProfileSettingsDialog}>
@@ -670,7 +731,7 @@ setMonthTargetsDialogSavingAllowed(false);
         <DialogActions>
         </DialogActions>
       </Dialog>
-
+      }
       {/* MONTHLY TARGET DIALOG */}
       <Dialog open={IsMonthTargetsDialogOpen} onClose={hideMonthTargetsDialog} aria-labelledby="form-dialog-add-entry-title">
       <DialogTitle id="form-dialog-add-entry-title">Monthly Target for {monthTargetsObject ? dateTimeFormatMonthName.format(new Date(monthTargetsObject.year,monthTargetsObject.month,1)) : ""}</DialogTitle>
