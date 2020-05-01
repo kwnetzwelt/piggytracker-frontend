@@ -9,9 +9,7 @@ import { Card, CardMedia, CardContent, Typography } from '@material-ui/core';
  * @param {wastrel,next} props 
  */
 export default function WastrelCard(props) {
-  
-  const dateTimeFormatMonthName = Intl.DateTimeFormat(Config.locale,Config.dateTimeFormatMonthName);
-  
+
   const useStyles = makeStyles((theme) => ({
     root: {
         display: 'flex',

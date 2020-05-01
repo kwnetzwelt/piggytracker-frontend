@@ -10,8 +10,7 @@ import DeleteForeverIcon from '@material-ui/icons/DeleteForever';
 
 
 
-import Config from './Config';
-import { Paper, Button, InputBase, IconButton, Divider, Typography, Container, Input } from '@material-ui/core';
+import { Paper, InputBase, IconButton, Divider, Typography } from '@material-ui/core';
 
 /**
  * 
@@ -19,7 +18,6 @@ import { Paper, Button, InputBase, IconButton, Divider, Typography, Container, I
  */
 export default function InviteCode(props) {
     
-    var codeInput = undefined;
     
     const onRefreshClicked = (e) => {
         if(props.refreshClicked)

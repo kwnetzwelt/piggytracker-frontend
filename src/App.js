@@ -4,6 +4,7 @@ import { makeStyles } from '@material-ui/core/styles';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import Fab from '@material-ui/core/Fab';
 import AddIcon from '@material-ui/icons/Add';
+import CloseIcon from '@material-ui/icons/Close';
 import EmojiEventsIcon from '@material-ui/icons/EmojiEvents';
 import AppBar from '@material-ui/core/AppBar';
 import Toolbar from '@material-ui/core/Toolbar';
@@ -21,7 +22,7 @@ import './App.css';
 import axios from 'axios';
 import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
-import { Avatar, TextField, InputLabel, ThemeProvider, createMuiTheme, Box, withStyles, Badge, Chip, ExpansionPanel, ExpansionPanelSummary, ExpansionPanelDetails, Container, Paper, InputBase } from '@material-ui/core';
+import { Avatar, TextField, InputLabel, ThemeProvider, createMuiTheme, Box, withStyles, Badge, Chip, ExpansionPanel, ExpansionPanelSummary, ExpansionPanelDetails, Container } from '@material-ui/core';
 
 import {BottomNavigation, BottomNavigationAction} from '@material-ui/core';
 import DateFnsUtils from '@date-io/date-fns';
@@ -78,6 +79,12 @@ const theme = createMuiTheme({
 const useStyles = makeStyles((theme) => ({
   root: {
     flexGrow: 1,
+  },
+  dialogCloseButton: {
+    position: 'absolute',
+    right: theme.spacing(1),
+    top: theme.spacing(1),
+    color: theme.palette.grey[500],
   },
   cardMedia: {
     objectPosition: "50% 66%"
@@ -568,12 +575,15 @@ setMonthTargetsDialogSavingAllowed(false);
   const inviteCodeElement = React.useRef();
   const [generatedInviteCode, setGeneratedInviteCode] = useState("");
   const [IsUserProfileSettingsDialogOpen, setIsUserProfileSettingsDialogOpen] = useState(false);
+  const submitUserProfileDialog = () => {
+    setIsUserProfileSettingsDialogOpen(false);
+  }
   const hideUserProfileSettingsDialog = () => {
     setIsUserProfileSettingsDialogOpen(false);
   }
   const getNewInviteCode = (inviteCodeElement) => {
 
-    axios({method:"GET",url:apiEndpoint + '/invite', headers:getAuthHeader()}
+    axios({method:"GET",url:apiEndpoint + '/invites', headers:getAuthHeader()}
     ).then(result => {
       setGeneratedInviteCode(result.data.code);
       inviteCodeElement.current.setCodeValue(result.data.code);
@@ -582,7 +592,7 @@ setMonthTargetsDialogSavingAllowed(false);
   }
 
   const storeInviteCode = (inviteCodeElement) => {
-    axios({method:"POST",url:apiEndpoint + '/invite', headers:getAuthHeader(), data:{code:inviteCodeElement.substr(0,9)}, }
+    axios({method:"POST",url:apiEndpoint + '/invites', headers:getAuthHeader(), data:{code:inviteCodeElement.substr(0,9)}, }
     ).then(result => {
       
       var receivedUserProfile = transformUserProfile(result.data);
@@ -593,7 +603,7 @@ setMonthTargetsDialogSavingAllowed(false);
   }
   
   const leaveGroup = (inviteCodeElement) => {
-    axios({method:"DELETE",url:apiEndpoint + '/invite', headers:getAuthHeader()} ).then(result => {
+    axios({method:"DELETE",url:apiEndpoint + '/invites', headers:getAuthHeader()} ).then(result => {
       
       var receivedUserProfile = transformUserProfile(result.data);
       setUserProfile (receivedUserProfile);
@@ -645,7 +655,11 @@ setMonthTargetsDialogSavingAllowed(false);
       {/* User Profile Settings */}
       
       <Dialog open={IsUserProfileSettingsDialogOpen} onClose={hideUserProfileSettingsDialog} aria-labelledby="form-dialog-add-entry-title">
-        <DialogTitle id="form-dialog-add-entry-title">Profile Settings</DialogTitle>
+        <DialogTitle id="form-dialog-add-entry-title">Profile Settings
+          <IconButton aria-label="close" className={classes.dialogCloseButton} onClick={hideUserProfileSettingsDialog}>
+            <CloseIcon />
+          </IconButton>
+        </DialogTitle>
         <DialogContent>
          <InviteCode ref={inviteCodeElement} refreshClicked={getNewInviteCode} 
          saveClicked={storeInviteCode} groupName={userProfile.groupName} 
@@ -654,16 +668,7 @@ setMonthTargetsDialogSavingAllowed(false);
          value={generatedInviteCode} leaveClicked={leaveGroup} user={userProfile} />
         </DialogContent>
         <DialogActions>
-        <Button onClick={hideUserProfileSettingsDialog} color="primary">
-          Cancel
-        </Button>
-        <div className={classes.wrapper}>
-        <Button variant="contained" disabled={monthTargetsDialogSavingAllowed} onClick={submitMonthTargetsDialog} color="primary" disableElevation>
-          Save
-        </Button>
-        {monthTargetsDialogSavingAllowed && <CircularProgress size={24} className={classes.buttonProgress} />}
-        </div>
-      </DialogActions>
+        </DialogActions>
       </Dialog>
 
       {/* MONTHLY TARGET DIALOG */}
@@ -895,7 +900,7 @@ setMonthTargetsDialogSavingAllowed(false);
               <picture>
                 <source srcSet="icon.webp" type="image/webp" />
                 <source srcSet="icon.jpg" type="image/jpeg" />
-                <img style={{ width: "40vmin", height:"40vmin",
+                <img alt="icon" style={{ width: "40vmin", height:"40vmin",
                 verticalAlign:"middle",
                 marginLeft:"auto",marginRight:"auto"
                 }}/>              </picture>
