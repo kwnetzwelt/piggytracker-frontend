@@ -297,6 +297,7 @@ setMonthTargetsDialogSavingAllowed(false);
   const [accountValues,setAccountValues] = useState(new Accounts());
   const [selectedEntryId,setSelectedEntryId] = useState(null);
   const selectedEntryIdRef = React.useRef(selectedEntryId);
+  
   const updateAccounts = (entries,targets) => {
     if(!targets)
       targets = accountValues.targets;
@@ -427,7 +428,9 @@ setMonthTargetsDialogSavingAllowed(false);
 
   const [userProfile,setUserProfile] = useState({groupName:""});
   const [IsLoginDialogOpen, loginDialogOpen] = useState(false); // hidden dialogs
+
   const [loggedIn, setLoggedIn] = useState(false);
+  const loggedInRef = React.useRef(loggedIn);
   const views = ["entries","accounts","wastrel"];
   const [currentView, setCurrentView] = useState("entries");
   const avatarDisplay = createRef();
@@ -458,10 +461,10 @@ setMonthTargetsDialogSavingAllowed(false);
     console.log('Email: ' + profile.getEmail()); // This is null if the 'email' scope is not present.
 
     const id_token = googleUser.getAuthResponse().id_token;
-    axios({method: "POST", url: Config.apiEndpoint + "/google/tokensignin", data:{idtoken:id_token}, headers:{
+    axios({method: "POST", url: Config.apiEndpoint + "/google/tokensignin", data:{idtoken:id_token,avatarUrl:profile.getImageUrl()}, headers:{
       contentType: 'application/x-www-form-urlencoded'
     }}).then(result =>{
-      var receivedUserProfile = transformUserProfile(result.data.userProfile, profile.getImageUrl());
+      var receivedUserProfile = transformUserProfile(result.data.userProfile);
       
       storeAuthToken(result.data.token);
       loginComplete(receivedUserProfile, );
@@ -479,6 +482,7 @@ setMonthTargetsDialogSavingAllowed(false);
   const updateRate = 2500;
   let lastUpdateRun = 0;
   const runDataUpdate = () => {
+    
     if(selectedEntryIdRef.current)
     {
       scheduleDataUpdate();
@@ -510,11 +514,16 @@ setMonthTargetsDialogSavingAllowed(false);
         updateAccounts(dataEntries,targetsData);
         lastUpdateRun = 0;
         scheduleDataUpdate();
-      }).catch(() => {
+      }).catch((error) => {
+        if(error.response.status === 401)
+          return;
         scheduleDataUpdate();
 
       });
-    }).catch(() => {
+    }).catch((error) => {
+      
+      if(error.response.status === 401)
+        return;
       scheduleDataUpdate();
     });
 
@@ -553,6 +562,7 @@ setMonthTargetsDialogSavingAllowed(false);
   }
 
   const logout = () => {
+    setDataEntries([]);
     setUserProfile(null);
     setLoggedIn(false);
     storeAuthToken(null);
@@ -607,12 +617,8 @@ setMonthTargetsDialogSavingAllowed(false);
       return fullname.charAt(0).toUpperCase();
   }
 
-  const transformUserProfile = (profileData, imageUrl) => {
+  const transformUserProfile = (profileData) => {
     profileData.initials = getUserInitials(profileData.fullname);
-    if(imageUrl)
-      profileData.avatarUrl = imageUrl;
-    else if (profileData.avatarUrl && profileData.avatarUrl.length > 0)
-      profileData.avatarUrl = Config.staticAssets + profileData.avatarUrl;
     return profileData;
   }
   const [submittingLogin, setSubmittingLogin] = useState(false);
@@ -752,7 +758,7 @@ setMonthTargetsDialogSavingAllowed(false);
         </DialogTitle>
         <DialogContent>
          <InviteCode ref={inviteCodeElement} refreshClicked={getNewInviteCode} 
-         saveClicked={storeInviteCode} groupName={userProfile.groupName} 
+         saveClicked={storeInviteCode}
          length
          setValue={setGeneratedInviteCode}
          value={generatedInviteCode} leaveClicked={leaveGroup} user={userProfile} />

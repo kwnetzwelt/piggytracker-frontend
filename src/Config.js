@@ -17,10 +17,10 @@ const Config =class {
     /** Currenty display according to your used currency. */
     static toCurrencyValue = value => value.toFixed(2) + "\u00a0€";
     /** The base url of all static assets like category, month and avatar images. */
-    static staticAssets = "http://localhost/static";
+    static staticAssets = "http://localhost:3030/static";
     /** Getters for static content urls*/
     static getCategoryUrl = (category) => this.staticAssets +"/categories/" + category.toLowerCase().replace(" ","-") + ".png";
-    static getAvatarUrl = (fullName) => this.staticAssets + "/avatars/" + fullName.toLowerCase().replace(" ","-") + ".jpg";
+    static getAvatarUrl = (fullName) => this.staticAssets + "/avatars/" + fullName.toLowerCase().replace(" ","-");
     static getMonthImageUrl = (monthCategories) => this.staticAssets + "/month/" + (monthCategories.month).toString().padStart(2,"0") + ".jpg"
 }
 export default Config;
