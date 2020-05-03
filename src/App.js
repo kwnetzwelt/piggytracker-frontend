@@ -10,8 +10,6 @@ import AppBar from '@material-ui/core/AppBar';
 import Toolbar from '@material-ui/core/Toolbar';
 import Typography from '@material-ui/core/Typography';
 import Button from '@material-ui/core/Button';
-import IconButton from '@material-ui/core/IconButton';
-import MenuIcon from '@material-ui/icons/Menu';
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
@@ -22,7 +20,7 @@ import './App.css';
 import axios from 'axios';
 import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
-import { Avatar, TextField, InputLabel, ThemeProvider, createMuiTheme, Box, withStyles, Badge, Chip, ExpansionPanel, ExpansionPanelSummary, ExpansionPanelDetails, Container } from '@material-ui/core';
+import { IconButton, Avatar, TextField, InputLabel, ThemeProvider, createMuiTheme, Box, withStyles, Badge, Chip, ExpansionPanel, ExpansionPanelSummary, ExpansionPanelDetails, Container } from '@material-ui/core';
 
 import {BottomNavigation, BottomNavigationAction} from '@material-ui/core';
 import DateFnsUtils from '@date-io/date-fns';
@@ -50,7 +48,7 @@ import InviteCode from './InviteCode';
 
 import PopupState, { bindTrigger, bindMenu } from 'material-ui-popup-state';
 import WastrelCard from './WastrelCard';
-
+import MainDrawer from './MainDrawer';
 
 const theme = createMuiTheme({
   palette: {
@@ -144,9 +142,6 @@ const useStyles = makeStyles((theme) => ({
     backgroundColor: theme.primary
   },
   table : {
-  },
-  menuButton: {
-    marginRight: theme.spacing(2),
   },
   
   fab: {
@@ -709,14 +704,17 @@ setMonthTargetsDialogSavingAllowed(false);
     
   }
 
+
   return (
     <div className="App">
       <ThemeProvider theme={theme}>
       <AppBar className={classes.appBar}>
         <Toolbar>
-          <IconButton edge="start" className={classes.menuButton} color="inherit" aria-label="menu">
-            <MenuIcon />
-          </IconButton>
+
+          {loggedIn && 
+            <MainDrawer />
+          }
+        
           <Typography variant="h6" className={classes.title}>
             piggytracker
           </Typography>
@@ -746,7 +744,6 @@ setMonthTargetsDialogSavingAllowed(false);
         </Toolbar>
       </AppBar>
       
-    
       
       {/* User Profile Settings */}
       {userProfile && 
