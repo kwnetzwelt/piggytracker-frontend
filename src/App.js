@@ -1,6 +1,6 @@
 import React, { useState, useEffect, createRef} from 'react';
 import { makeStyles } from '@material-ui/core/styles';
-
+import GoogleLogin from 'react-google-login';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import Fab from '@material-ui/core/Fab';
 import AddIcon from '@material-ui/icons/Add';
@@ -183,7 +183,7 @@ const SmallAvatar = withStyles((theme) => ({
 function App() {
 
 
-  const apiEndpoint = Config.apiEndpoint;
+  const apiEndpoint = Config.apiEndpoint + Config.apiEndpointPrefixRoute;
   const classes = useStyles();
   
   useEffect(() => {
@@ -297,6 +297,7 @@ setMonthTargetsDialogSavingAllowed(false);
   const [accountValues,setAccountValues] = useState(new Accounts());
   const [selectedEntryId,setSelectedEntryId] = useState(null);
   const selectedEntryIdRef = React.useRef(selectedEntryId);
+  
   const updateAccounts = (entries,targets) => {
     if(!targets)
       targets = accountValues.targets;
@@ -427,28 +428,13 @@ setMonthTargetsDialogSavingAllowed(false);
 
   const [userProfile,setUserProfile] = useState({groupName:""});
   const [IsLoginDialogOpen, loginDialogOpen] = useState(false); // hidden dialogs
+
   const [loggedIn, setLoggedIn] = useState(false);
+  const loggedInRef = React.useRef(loggedIn);
   const views = ["entries","accounts","wastrel"];
   const [currentView, setCurrentView] = useState("entries");
   const avatarDisplay = createRef();
   
-  const getAuthHeader = () => {
-    return {'Authorization' : 'Bearer ' + localStorage.getItem('id_token')};
-  }
-  const restoreUserProfile = () => {
-    axios({method:"GET",url : apiEndpoint + "/login", headers: getAuthHeader()}).then( result => {
-      var receivedUserProfile = transformUserProfile(result.data);
-      setUserProfile (receivedUserProfile);
-      setLoggedIn(true);
-
-      fetchAllData(250,0); // fetch 15 at a time
-    
-    }).catch((err) => {
-      console.log("restoreUserProfile failed");
-      setLoggedIn(false);
-    });
-  }
-
   const sortDataEntries = () => {
     dataEntries.sort( (e1,e2) => {
       const v1 = (e1.date - e2.date) 
@@ -456,9 +442,47 @@ setMonthTargetsDialogSavingAllowed(false);
     });
     setDataEntries(dataEntries);
   }
+  const restoreUserProfile = () => {
+    axios({method:"GET",url : apiEndpoint + "/login", headers: getAuthHeader()}).then( result => {
+      var receivedUserProfile = transformUserProfile(result.data);
+      loginComplete(receivedUserProfile, getStoredAuthToken());    
+    }).catch((err) => {
+      console.log("restoreUserProfile failed");
+      setLoggedIn(false);
+    });
+  }
+
+
+  const onSignIn = (googleUser) => {
+    const profile = googleUser.getBasicProfile();
+    console.log('ID: ' + profile.getId()); // Do not send to your backend! Use an ID token instead.
+    console.log('Name: ' + profile.getName());
+    console.log('Image URL: ' + profile.getImageUrl());
+    console.log('Email: ' + profile.getEmail()); // This is null if the 'email' scope is not present.
+
+    const id_token = googleUser.getAuthResponse().id_token;
+    axios({method: "POST", url: Config.apiEndpoint + "/google/tokensignin", data:{idtoken:id_token,avatarUrl:profile.getImageUrl()}, headers:{
+      contentType: 'application/x-www-form-urlencoded'
+    }}).then(result =>{
+      var receivedUserProfile = transformUserProfile(result.data.userProfile);
+      
+      storeAuthToken(result.data.token);
+      loginComplete(receivedUserProfile, );
+      
+    });
+  }
+
+  const loginComplete = (receivedUserProfile, token) => {
+    hideLoginDialog();
+    setUserProfile (receivedUserProfile);
+    setLoggedIn(true);
+    fetchAllData(250,0);
+  }
+
   const updateRate = 2500;
   let lastUpdateRun = 0;
   const runDataUpdate = () => {
+    
     if(selectedEntryIdRef.current)
     {
       scheduleDataUpdate();
@@ -490,11 +514,16 @@ setMonthTargetsDialogSavingAllowed(false);
         updateAccounts(dataEntries,targetsData);
         lastUpdateRun = 0;
         scheduleDataUpdate();
-      }).catch(() => {
+      }).catch((error) => {
+        if(error.response.status === 401)
+          return;
         scheduleDataUpdate();
 
       });
-    }).catch(() => {
+    }).catch((error) => {
+      
+      if(error.response.status === 401)
+        return;
       scheduleDataUpdate();
     });
 
@@ -533,9 +562,17 @@ setMonthTargetsDialogSavingAllowed(false);
   }
 
   const logout = () => {
+    setDataEntries([]);
     setUserProfile(null);
     setLoggedIn(false);
     storeAuthToken(null);
+  }
+  
+  const getStoredAuthToken = () => {
+    return localStorage.getItem('id_token');
+  }
+  const getAuthHeader = () => {
+    return {'Authorization' : "Bearer " + getStoredAuthToken()};
   }
   const restoreAuthToken = () => {
     var authToken = localStorage.getItem("id_token");
@@ -601,8 +638,6 @@ setMonthTargetsDialogSavingAllowed(false);
       setSubmittingLogin(false);
       setLoginError("");
       storeAuthToken(result.data.token);
-      hideLoginDialog();
-      // tryout token now to get userProfile and begin using the app
       restoreUserProfile(); 
     }).catch(error => {
       setSubmittingLogin(false);
@@ -695,7 +730,7 @@ setMonthTargetsDialogSavingAllowed(false);
                   aria-controls="avatar-context-menu" 
                   aria-haspopup="true" 
                   {...bindTrigger(popupState)}
-                  src={Config.staticAssets + userProfile.avatarUrl}
+                  src={userProfile.avatarUrl}
                   style={{cursor:"pointer"}}
                   >{userProfile.initials}</Avatar>
                 <Menu {...bindMenu(popupState)} anchorOrigin={{horizontal:"right", vertical:"left"}}>
@@ -723,7 +758,7 @@ setMonthTargetsDialogSavingAllowed(false);
         </DialogTitle>
         <DialogContent>
          <InviteCode ref={inviteCodeElement} refreshClicked={getNewInviteCode} 
-         saveClicked={storeInviteCode} groupName={userProfile.groupName} 
+         saveClicked={storeInviteCode}
          length
          setValue={setGeneratedInviteCode}
          value={generatedInviteCode} leaveClicked={leaveGroup} user={userProfile} />
@@ -907,6 +942,15 @@ setMonthTargetsDialogSavingAllowed(false);
 
       {/* LOGIN DIALOG */}
       <Dialog open={IsLoginDialogOpen} onClose={hideLoginDialog} aria-labelledby="form-dialog-title">
+      <GoogleLogin
+        clientId="483535558510-vhcru5umuiitnjiknlnc8g62s4v6p876.apps.googleusercontent.com"
+        buttonText="Login"
+        onSuccess={onSignIn}
+        onFailure={onSignIn}
+        isSignedIn={true}
+        cookiePolicy={'single_host_origin'}
+      />
+    
       <form className={classes.root} noValidate>
     
       <DialogTitle id="form-dialog-title">Login</DialogTitle>

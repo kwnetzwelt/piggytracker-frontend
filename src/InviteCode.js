@@ -14,7 +14,7 @@ import { Paper, InputBase, IconButton, Divider, Typography } from '@material-ui/
 
 /**
  * 
- * @param {user,groupName, refreshClicked, saveClicked, leaveClicked,value } props 
+ * @param {user, refreshClicked, saveClicked, leaveClicked,value } props 
  */
 export default function InviteCode(props) {
     
@@ -64,24 +64,27 @@ export default function InviteCode(props) {
   },
   }));
 
+  const isInGroup = () => {
+    return props.user.groupId != props.user.id;
+  };
   
 
   const classes = useStyles();
   return (
         <React.Fragment>
-            {props.groupName && <Typography>
+            {isInGroup() && <Typography>
                 You are part of a group already. To leave hit the <DeleteForeverIcon fontSize="small" /> button.
             </Typography> }
-            {!props.groupName && <Typography>
+            {!isInGroup() && <Typography>
                 You can join a group by <RefreshIcon fontSize="small" /> creating an invite code and handing this code to another user, who might then enter it into their code-field and hit <SaveIcon fontSize="small" />. 
             </Typography> }
             <Paper component="form" className={classes.root}>
-            {props.groupName && <React.Fragment>
+            {isInGroup() && <React.Fragment>
                 <GroupIcon className={classes.startIcon}/>
                 <InputBase
                 className={classes.input}
                 placeholder="codeword1"
-                value={props.groupName}
+                value={props.user.groupName}
                 inputProps={{ 'aria-label': 'invite code' }}
                 disabled
                 />
@@ -90,7 +93,7 @@ export default function InviteCode(props) {
                 </IconButton>
             </React.Fragment> }
             
-            {!props.groupName && <React.Fragment>
+            {!isInGroup() && <React.Fragment>
                 
                 <GroupIcon className={classes.startIcon}/>
                 <InputBase
