@@ -358,7 +358,7 @@ setMonthTargetsDialogSavingAllowed(false);
   const [expandAddEntryDialog, setExpandAddEntryDialog] = useState(false);
     const showAddEntryDialog = (id) => {
     selectedEntryIdRef.current = id;
-    
+    setSelectedEntryId(id);
     if(!id)
     {
       setEntryDate({value:new Date(),error:null});
@@ -491,7 +491,7 @@ setMonthTargetsDialogSavingAllowed(false);
         for (let index = 0; index < changedEntries.length; index++) {
           const element = changedEntries[index];
           const e = dataEntries.findIndex((e) => e._id === element._id);
-          if(e === -1)
+          if(e === -1 && !element.deleted)
           {
             // new entry
             dataEntries.push(element);
