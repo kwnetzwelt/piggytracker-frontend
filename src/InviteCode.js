@@ -41,7 +41,6 @@ export default function InviteCode(props) {
         padding: '2px 4px',
         display: 'flex',
         alignItems: 'center',
-        width: 400,
         marginTop:theme.spacing(2),
         marginLeft:"auto",
         marginRight:"auto"
