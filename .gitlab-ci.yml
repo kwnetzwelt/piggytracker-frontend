@@ -18,7 +18,7 @@ build:
   stage: build
   script:
     - npm ci
-    - cp .Defaultconfig.js Config.js
+    - cp .DefaultConfig.js Config.js
     - CI=false npm run build
   artifacts:
     paths:
