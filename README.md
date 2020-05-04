@@ -12,9 +12,9 @@ This project was bootstrapped with [Create React App](https://github.com/faceboo
 
 ## Configuration
 
-### src/Config.js
+### src/.DefaultConfig.js
 
-Please review src/Config.js to setup your environment. 
+Please copy this file to src/Config.js and setup your environment there. 
 
 
 ## Available Scripts
