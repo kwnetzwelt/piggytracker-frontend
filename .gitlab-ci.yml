@@ -19,7 +19,7 @@ build:
   script:
     - npm ci
     - cp src/.DefaultConfig.js src/Config.js
-    - CI=false npm run build
+    - CI=false REACT_APP_CURRENT_GIT_SHA=CI_COMMIT_SHORT_SHA --short HEAD` npm run build
   artifacts:
     paths:
     - build

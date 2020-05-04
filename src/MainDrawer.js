@@ -9,14 +9,13 @@ import CheckCircleIcon from '@material-ui/icons/CheckCircle';
 import MenuIcon from '@material-ui/icons/Menu';
 
 
-import { IconButton,  Drawer, Divider, List, ListItem, ListItemIcon, ListItemText } from '@material-ui/core';
+import { IconButton,  Drawer, Divider, List, ListItem, ListItemIcon, ListItemText, Typography } from '@material-ui/core';
 
 /**
  * 
  * @param {user, refreshClicked, saveClicked, leaveClicked,value } props 
  */
 export default function MainDrawer(props) {
-    
   const [state, setState] = React.useState({
     isOpen : false });
   
@@ -48,6 +47,12 @@ export default function MainDrawer(props) {
     menuButton: {
       marginRight: theme.spacing(2),
     },
+    vspacer: {
+      flexGrow: 1
+    },
+    versionString: {
+      textAlign:"center"
+    }
     
   }));
 
@@ -55,7 +60,6 @@ export default function MainDrawer(props) {
   const classes = useStyles();
   return (
         <React.Fragment>
-
           <IconButton edge="start" className={classes.menuButton} color="inherit" aria-label="menu" onClick={toggleDrawer(true)}>
             <MenuIcon />
           </IconButton>
@@ -79,6 +83,10 @@ export default function MainDrawer(props) {
                 <ListItemText primary="Export CSV" />
               </ListItem>
             </List>
+            <Typography display="block" className={classes.vspacer}></Typography>
+            <Typography variant="overline" display="block" gutterBottom className={classes.versionString}>
+            version: {process.env.REACT_APP_CURRENT_GIT_SHA}
+            </Typography>
           </Drawer>
 
         </React.Fragment>            

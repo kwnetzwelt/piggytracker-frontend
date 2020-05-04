@@ -158,6 +158,9 @@ const useStyles = makeStyles((theme) => ({
   critical: {
     color: red[400],
     fontWeight:"bold"
+  },
+  versionString: {
+    textAlign:"center"
   }
 }));
 
@@ -740,8 +743,9 @@ setMonthTargetsDialogSavingAllowed(false);
                 <Menu {...bindMenu(popupState)} anchorOrigin={{horizontal:"right", vertical:"left"}}>
                   <MenuItem id="avatar-context-menu-fullname">{userProfile.fullname}</MenuItem>
                   <MenuItem id="avatar-context-menu-settings" onClick={hideAvatarContextMenu}>Settings</MenuItem>
-                  
                   <MenuItem onClick={hideAvatarContextMenu} id="avatar-context-menu-logout">Logout</MenuItem>
+
+                  
                 </Menu>
               </React.Fragment>
             )}
@@ -1003,7 +1007,7 @@ setMonthTargetsDialogSavingAllowed(false);
       </form>
       </Dialog>
       {!loggedIn &&
-        <Container style={{ height: 'calc(90vh)', lineHeight:'calc(90vh)' }}>
+        <Container style={{ height: 'calc(70vh)', lineHeight:'calc(70vh)' }}>
         
               <picture>
                 <source srcSet="icon.webp" type="image/webp" />
@@ -1011,7 +1015,11 @@ setMonthTargetsDialogSavingAllowed(false);
                 <img alt="icon" style={{ width: "40vmin", height:"40vmin",
                 verticalAlign:"middle",
                 marginLeft:"auto",marginRight:"auto"
-                }}/>              </picture>
+                }}/>             
+                 </picture>
+                <Typography variant="overline" display="block" gutterBottom className={classes.versionString}>
+                version: {process.env.REACT_APP_CURRENT_GIT_SHA}
+                </Typography>
             
         </Container>
       }   

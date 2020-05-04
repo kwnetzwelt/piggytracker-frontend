@@ -12,6 +12,7 @@
     "@testing-library/react": "^9.5.0",
     "@testing-library/user-event": "^7.2.1",
     "axios": "^0.19.2",
+    "cross-env": "^7.0.2",
     "date-fns": "^2.11.1",
     "igniteui-react-core": "^16.11.8",
     "install": "^0.13.0",
@@ -26,8 +27,8 @@
     "react-virtualized": "^9.21.2"
   },
   "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
+    "start": "cross-env REACT_APP_CURRENT_GIT_SHA=`git rev-parse --short HEAD` react-scripts start",
+    "build": "cross-env REACT_APP_CURRENT_GIT_SHA=`git rev-parse --short HEAD` react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
