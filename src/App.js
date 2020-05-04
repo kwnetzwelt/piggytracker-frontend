@@ -153,7 +153,8 @@ const useStyles = makeStyles((theme) => ({
     flexGrow: 1,
   },
   accountsGrid : {
-    flexGrow: 1
+    flexGrow: 1,
+    marginBottom:64
   },
   critical: {
     color: red[400],
@@ -1025,7 +1026,7 @@ setMonthTargetsDialogSavingAllowed(false);
       }   
       {loggedIn && currentView === "wastrel" && 
         
-        <div style={{ height: 'calc(90vh)',paddingLeft: 20, paddingRight: 20,paddingTop: 20 }}>
+        <div style={{ height: 'calc(90vh-56px)',paddingLeft: 20, paddingRight: 20,paddingTop: 20 }}>
               <Grid container justify="center" spacing={2} className={classes.accountsGrid}>
           {accountValues.remuneratorSpendings.map((wastrel,i,all) =>
               <Grid item>
@@ -1037,7 +1038,7 @@ setMonthTargetsDialogSavingAllowed(false);
         </div>
       } 
       {loggedIn && (currentView === "entries") && 
-        <div style={{ height: 'calc(90vh)' }}>
+        <div style={{ height: 'calc(90vh-56px)' }}>
           <AutoSizer>
             {({height, width}) => (
 
@@ -1060,7 +1061,7 @@ setMonthTargetsDialogSavingAllowed(false);
       }
       {loggedIn && (currentView === "accounts") && 
        
-        <div style={{ height: 'calc(90vh)',paddingLeft: 20, paddingRight: 20,paddingTop: 20 }}>
+        <div style={{ height: 'calc(100vh)',paddingLeft: 20, paddingRight: 20,paddingTop: 20 }}>
           
                 <Menu
                   id="Month-Options-Menu"
