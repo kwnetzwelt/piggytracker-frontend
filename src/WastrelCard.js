@@ -47,6 +47,7 @@ export default function WastrelCard(props) {
         <div className={classes.details}>
         <CardContent className={classes.content}>
             
+            {props.wastrel.remunerator}
             <Typography className={classes.hugeMoney}>
                 {Config.toCurrencyValue(props.wastrel.value)}
             </Typography>
@@ -55,6 +56,7 @@ export default function WastrelCard(props) {
                 {Config.toCurrencyValue(props.wastrel.value - props.next.value)} too much!
             </Typography>
             }
+        
             </CardContent>
             
       </div>
