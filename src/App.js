@@ -491,10 +491,16 @@ setMonthTargetsDialogSavingAllowed(false);
         for (let index = 0; index < changedEntries.length; index++) {
           const element = changedEntries[index];
           const e = dataEntries.findIndex((e) => e._id === element._id);
-          if(e === -1 && !element.deleted)
+          if(e === -1)
           {
-            // new entry
-            dataEntries.push(element);
+            if(element.deleted)
+            {
+              // we already deleted that locally
+            }else
+            {
+              // new entry
+              dataEntries.push(element);
+            }
           }
           else
           {
