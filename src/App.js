@@ -360,7 +360,7 @@ setMonthTargetsDialogSavingAllowed(false);
   
   const [IsAddEntryDialogOpen, addEntryDialogOpen] = useState(false); // hidden dialogs
   const [expandAddEntryDialog, setExpandAddEntryDialog] = useState(false);
-    const showAddEntryDialog = (id) => {
+  const showAddEntryDialog = (id) => {
     selectedEntryIdRef.current = id;
     setSelectedEntryId(id);
     if(!id)
@@ -839,6 +839,7 @@ setMonthTargetsDialogSavingAllowed(false);
           fullWidth
           type="number"
           variant="filled"
+          onFocus={(e) => {if(parseInt(entryValue.value) === 0) e.target.select();}}
           value={entryValue.value}
           onChange={(e) => setEntryValue({value:ensureMonetaryValue(e.target.value),error:null})}
         />
