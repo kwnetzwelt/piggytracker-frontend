@@ -16,6 +16,7 @@ import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogContentText from '@material-ui/core/DialogContentText';
 import DialogTitle from '@material-ui/core/DialogTitle';
+import { styled } from '@material-ui/core/styles';
 import './App.css';
 import axios from 'axios';
 import Menu from '@material-ui/core/Menu';
@@ -51,6 +52,7 @@ import WastrelCard from './WastrelCard';
 import MainDrawer from './MainDrawer';
 
 const theme = createMuiTheme({
+  
   palette: {
     criticalColor: {main:red[700]}
     ,
@@ -74,6 +76,16 @@ const theme = createMuiTheme({
     tonalOffset: 0.2,
   },
 });
+
+const PDialog = styled(Dialog)({
+  '& .MuiPaper-root:first-of-type' : {
+
+    border: 0,
+    borderRadius: 0,
+    
+  }
+});
+
 const useStyles = makeStyles((theme) => ({
   root: {
     flexGrow: 1,
@@ -758,7 +770,7 @@ setMonthTargetsDialogSavingAllowed(false);
       
       {/* User Profile Settings */}
       {userProfile && 
-      <Dialog open={IsUserProfileSettingsDialogOpen} onClose={hideUserProfileSettingsDialog} aria-labelledby="form-dialog-add-entry-title">
+      <PDialog className={classes.removeRoundBorders} open={IsUserProfileSettingsDialogOpen} onClose={hideUserProfileSettingsDialog} aria-labelledby="form-dialog-add-entry-title">
         <DialogTitle id="form-dialog-add-entry-title">Profile Settings
           <IconButton aria-label="close" className={classes.dialogCloseButton} onClick={hideUserProfileSettingsDialog}>
             <CloseIcon />
@@ -773,10 +785,10 @@ setMonthTargetsDialogSavingAllowed(false);
         </DialogContent>
         <DialogActions>
         </DialogActions>
-      </Dialog>
+      </PDialog>
       }
       {/* MONTHLY TARGET DIALOG */}
-      <Dialog open={IsMonthTargetsDialogOpen} onClose={hideMonthTargetsDialog} aria-labelledby="form-dialog-add-entry-title">
+      <PDialog className={classes.removeRoundBorders} open={IsMonthTargetsDialogOpen} onClose={hideMonthTargetsDialog} aria-labelledby="form-dialog-add-entry-title">
       <DialogTitle id="form-dialog-add-entry-title">Monthly Target for {monthTargetsObject ? dateTimeFormatMonthName.format(new Date(monthTargetsObject.year,monthTargetsObject.month,1)) : ""}</DialogTitle>
       <DialogContent>
         {catMonthTargets.map(target => 
@@ -803,12 +815,12 @@ setMonthTargetsDialogSavingAllowed(false);
         {monthTargetsDialogSavingAllowed && <CircularProgress size={24} className={classes.buttonProgress} />}
         </div>
       </DialogActions>
-      </Dialog>
+      </PDialog>
 
       {/* ADD ENTRY DIALOG */}
 
 
-      <Dialog open={IsAddEntryDialogOpen} onClose={hideAddEntryDialog} aria-labelledby="form-dialog-add-entry-title">
+      <PDialog className={classes.removeRoundBorders} open={IsAddEntryDialogOpen} onClose={hideAddEntryDialog} aria-labelledby="form-dialog-add-entry-title">
       <DialogTitle id="form-dialog-add-entry-title">{selectedEntryId ? "Edit" : "Add"} Entry</DialogTitle>
       <DialogContent>
         <DialogContentText>
@@ -947,10 +959,10 @@ setMonthTargetsDialogSavingAllowed(false);
           {selectedEntryId ? "Save" : "Add"}
         </Button>
       </DialogActions>
-      </Dialog>
+      </PDialog>
 
       {/* LOGIN DIALOG */}
-      <Dialog open={IsLoginDialogOpen} onClose={hideLoginDialog} aria-labelledby="form-dialog-title">
+      <PDialog className={classes.removeRoundBorders} open={IsLoginDialogOpen} onClose={hideLoginDialog} aria-labelledby="form-dialog-title">
       <GoogleLogin
         clientId="483535558510-vhcru5umuiitnjiknlnc8g62s4v6p876.apps.googleusercontent.com"
         buttonText="Login"
@@ -1007,7 +1019,7 @@ setMonthTargetsDialogSavingAllowed(false);
         </Button>
       </DialogActions>
       </form>
-      </Dialog>
+      </PDialog>
       {!loggedIn &&
         <Container style={{ height: 'calc(70vh)', lineHeight:'calc(70vh)' }}>
         
