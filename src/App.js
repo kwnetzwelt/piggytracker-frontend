@@ -43,6 +43,7 @@ import Grid from '@material-ui/core/Grid';
 import FormControl from '@material-ui/core/FormControl';
 import Select from '@material-ui/core/Select';
 
+import useMediaQuery from '@material-ui/core/useMediaQuery';
 import {red,blueGrey} from '@material-ui/core/colors';
 import MonthCard from './MonthCard';
 import InviteCode from './InviteCode';
@@ -77,14 +78,20 @@ const theme = createMuiTheme({
   },
 });
 
+
+
 const PDialog = styled(Dialog)({
   '& .MuiPaper-root:first-of-type' : {
 
     border: 0,
-    borderRadius: 0,
+    borderRadius: 9,
     
   }
 });
+
+const PButton = styled(Button)({
+  
+})
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -193,6 +200,7 @@ const SmallAvatar = withStyles((theme) => ({
 
 function App() {
 
+  const fullScreen = useMediaQuery(theme.breakpoints.down('sm'));
 
   const apiEndpoint = Config.apiEndpoint + Config.apiEndpointPrefixRoute;
   const classes = useStyles();
@@ -741,7 +749,7 @@ setMonthTargetsDialogSavingAllowed(false);
             piggytracker
           </Typography>
           {!loggedIn ?
-            <Button onClick={showLoginDialog} color="inherit">Login</Button>
+            <PButton onClick={showLoginDialog} color="inherit">Login</PButton>
             :
             <PopupState variant="popover" popupId="demo-popup-menu">
             {(popupState) => (
@@ -770,7 +778,7 @@ setMonthTargetsDialogSavingAllowed(false);
       
       {/* User Profile Settings */}
       {userProfile && 
-      <PDialog className={classes.removeRoundBorders} open={IsUserProfileSettingsDialogOpen} onClose={hideUserProfileSettingsDialog} aria-labelledby="form-dialog-add-entry-title">
+      <PDialog fullscreen={fullScreen} className={classes.removeRoundBorders} open={IsUserProfileSettingsDialogOpen} onClose={hideUserProfileSettingsDialog} aria-labelledby="form-dialog-add-entry-title">
         <DialogTitle id="form-dialog-add-entry-title">Profile Settings
           <IconButton aria-label="close" className={classes.dialogCloseButton} onClick={hideUserProfileSettingsDialog}>
             <CloseIcon />
@@ -788,7 +796,7 @@ setMonthTargetsDialogSavingAllowed(false);
       </PDialog>
       }
       {/* MONTHLY TARGET DIALOG */}
-      <PDialog className={classes.removeRoundBorders} open={IsMonthTargetsDialogOpen} onClose={hideMonthTargetsDialog} aria-labelledby="form-dialog-add-entry-title">
+      <PDialog fullscreen={fullScreen} className={classes.removeRoundBorders} open={IsMonthTargetsDialogOpen} onClose={hideMonthTargetsDialog} aria-labelledby="form-dialog-add-entry-title">
       <DialogTitle id="form-dialog-add-entry-title">Monthly Target for {monthTargetsObject ? dateTimeFormatMonthName.format(new Date(monthTargetsObject.year,monthTargetsObject.month,1)) : ""}</DialogTitle>
       <DialogContent>
         {catMonthTargets.map(target => 
@@ -805,13 +813,13 @@ setMonthTargetsDialogSavingAllowed(false);
          )}
       </DialogContent>
       <DialogActions>
-        <Button onClick={hideMonthTargetsDialog} color="primary">
+        <PButton onClick={hideMonthTargetsDialog} color="primary">
           Cancel
-        </Button>
+        </PButton>
         <div className={classes.wrapper}>
-        <Button variant="contained" disabled={monthTargetsDialogSavingAllowed} onClick={submitMonthTargetsDialog} color="primary" disableElevation>
+        <PButton variant="contained" disabled={monthTargetsDialogSavingAllowed} onClick={submitMonthTargetsDialog} color="primary" disableElevation>
           Save
-        </Button>
+        </PButton>
         {monthTargetsDialogSavingAllowed && <CircularProgress size={24} className={classes.buttonProgress} />}
         </div>
       </DialogActions>
@@ -820,7 +828,7 @@ setMonthTargetsDialogSavingAllowed(false);
       {/* ADD ENTRY DIALOG */}
 
 
-      <PDialog className={classes.removeRoundBorders} open={IsAddEntryDialogOpen} onClose={hideAddEntryDialog} aria-labelledby="form-dialog-add-entry-title">
+      <PDialog fullscreen={fullScreen} className={classes.removeRoundBorders} open={IsAddEntryDialogOpen} onClose={hideAddEntryDialog} aria-labelledby="form-dialog-add-entry-title">
       <DialogTitle id="form-dialog-add-entry-title">{selectedEntryId ? "Edit" : "Add"} Entry</DialogTitle>
       <DialogContent>
         <DialogContentText>
@@ -948,21 +956,21 @@ setMonthTargetsDialogSavingAllowed(false);
       <DialogActions  className={classes.dialogActions}>
       
 
-        {selectedEntryId && <Button variant="contained" onClick={deleteSelectedEntry} color="secondary" disableElevation align="left" className={classes.deleteButton}>
+        {selectedEntryId && <PButton variant="contained" onClick={deleteSelectedEntry} color="secondary" disableElevation align="left" className={classes.deleteButton}>
           Delete
-        </Button>}
+        </PButton>}
         <Box className={classes.spacer} />
-        <Button onClick={hideAddEntryDialog} color="primary">
+        <PButton onClick={hideAddEntryDialog} color="primary">
           Cancel
-        </Button>
-        <Button variant="contained" onClick={submitAddEntryDialog} color="primary" disableElevation>
+        </PButton>
+        <PButton variant="contained" onClick={submitAddEntryDialog} color="primary" disableElevation>
           {selectedEntryId ? "Save" : "Add"}
-        </Button>
+        </PButton>
       </DialogActions>
       </PDialog>
 
       {/* LOGIN DIALOG */}
-      <PDialog className={classes.removeRoundBorders} open={IsLoginDialogOpen} onClose={hideLoginDialog} aria-labelledby="form-dialog-title">
+      <PDialog fullscreen={fullScreen} className={classes.removeRoundBorders} open={IsLoginDialogOpen} onClose={hideLoginDialog} aria-labelledby="form-dialog-title">
       <GoogleLogin
         clientId="483535558510-vhcru5umuiitnjiknlnc8g62s4v6p876.apps.googleusercontent.com"
         buttonText="Login"
@@ -1011,12 +1019,12 @@ setMonthTargetsDialogSavingAllowed(false);
         {submittingLogin && 
           <CircularProgress  size={12}></CircularProgress>
         }
-        <Button onClick={hideLoginDialog} color="primary">
+        <PButton onClick={hideLoginDialog} color="primary">
           Cancel
-        </Button>
-        <Button disabled={submittingLogin} variant="contained" onClick={submitLoginDialog} color="primary">
+        </PButton>
+        <PButton disabled={submittingLogin} variant="contained" onClick={submitLoginDialog} color="primary">
         Login
-        </Button>
+        </PButton>
       </DialogActions>
       </form>
       </PDialog>
