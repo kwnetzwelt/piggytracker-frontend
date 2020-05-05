@@ -266,6 +266,8 @@ export class Accounts {
             this.remuneratorSpendings.push(wastrel);
         }
         wastrel.value += entry.value;
+        // sort wastrels by value
+        this.remuneratorSpendings.sort((a,b) => b.value - a.value);
       
 
         found = false;
