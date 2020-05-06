@@ -13,7 +13,8 @@ export default function WastrelCard(props) {
   const useStyles = makeStyles((theme) => ({
     root: {
         display: 'flex',
-        width:350
+        width:350,
+        borderRadius:0
       },
       details: {
         display: 'flex',

@@ -16,6 +16,7 @@ import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogContentText from '@material-ui/core/DialogContentText';
 import DialogTitle from '@material-ui/core/DialogTitle';
+import { styled } from '@material-ui/core/styles';
 import './App.css';
 import axios from 'axios';
 import Menu from '@material-ui/core/Menu';
@@ -42,6 +43,7 @@ import Grid from '@material-ui/core/Grid';
 import FormControl from '@material-ui/core/FormControl';
 import Select from '@material-ui/core/Select';
 
+import useMediaQuery from '@material-ui/core/useMediaQuery';
 import {red,blueGrey} from '@material-ui/core/colors';
 import MonthCard from './MonthCard';
 import InviteCode from './InviteCode';
@@ -51,6 +53,7 @@ import WastrelCard from './WastrelCard';
 import MainDrawer from './MainDrawer';
 
 const theme = createMuiTheme({
+  
   palette: {
     criticalColor: {main:red[700]}
     ,
@@ -74,6 +77,22 @@ const theme = createMuiTheme({
     tonalOffset: 0.2,
   },
 });
+
+
+
+const PDialog = styled(Dialog)({
+  '& .MuiPaper-root:first-of-type' : {
+
+    border: 0,
+    borderRadius: 9,
+    
+  }
+});
+
+const PButton = styled(Button)({
+  
+})
+
 const useStyles = makeStyles((theme) => ({
   root: {
     flexGrow: 1,
@@ -181,6 +200,7 @@ const SmallAvatar = withStyles((theme) => ({
 
 function App() {
 
+  const fullScreen = useMediaQuery(theme.breakpoints.down('sm'));
 
   const apiEndpoint = Config.apiEndpoint + Config.apiEndpointPrefixRoute;
   const classes = useStyles();
@@ -434,9 +454,10 @@ setMonthTargetsDialogSavingAllowed(false);
   const [currentView, setCurrentView] = useState("entries");
   const avatarDisplay = createRef();
   
+  const sortingDataRegExp = new RegExp(/[-]/g);
   const sortDataEntries = () => {
     dataEntries.sort( (e1,e2) => {
-      const v1 = (e1.date - e2.date) 
+      const v1 = (e2.date.replace(sortingDataRegExp,"") - e1.date.replace(sortingDataRegExp,"")) 
       return v1 !== 0 ? v1 : e1.createdAt - e2.createdAt ;
     });
     setDataEntries(dataEntries);
@@ -492,6 +513,7 @@ setMonthTargetsDialogSavingAllowed(false);
       const targetsData = targetsResults.data.data; // data
       axios({method:"GET",url : apiEndpoint + "/updates",params: {updatedMillisecondsAgo:lastUpdateRun+500}, headers: getAuthHeader()}).then( result => {
         const changedEntries = result.data.data;
+        let oneChanged = false;
         for (let index = 0; index < changedEntries.length; index++) {
           const element = changedEntries[index];
           const e = dataEntries.findIndex((e) => e._id === element._id);
@@ -503,6 +525,7 @@ setMonthTargetsDialogSavingAllowed(false);
             }else
             {
               // new entry
+              oneChanged = true;
               dataEntries.push(element);
             }
           }
@@ -512,11 +535,16 @@ setMonthTargetsDialogSavingAllowed(false);
               dataEntries.splice(e,1);
             else
               dataEntries.splice(e,1,element);
+            oneChanged = true;
           }
           console.log(JSON.stringify(element));
         }
-        sortDataEntries();
-        updateAccounts(dataEntries,targetsData);
+        
+        if(oneChanged)
+        {
+          sortDataEntries();
+          updateAccounts(dataEntries,targetsData);
+        }
         lastUpdateRun = 0;
         scheduleDataUpdate();
       }).catch((error) => {
@@ -729,7 +757,7 @@ setMonthTargetsDialogSavingAllowed(false);
             piggytracker
           </Typography>
           {!loggedIn ?
-            <Button onClick={showLoginDialog} color="inherit">Login</Button>
+            <PButton onClick={showLoginDialog} color="inherit">Login</PButton>
             :
             <PopupState variant="popover" popupId="demo-popup-menu">
             {(popupState) => (
@@ -758,7 +786,7 @@ setMonthTargetsDialogSavingAllowed(false);
       
       {/* User Profile Settings */}
       {userProfile && 
-      <Dialog open={IsUserProfileSettingsDialogOpen} onClose={hideUserProfileSettingsDialog} aria-labelledby="form-dialog-add-entry-title">
+      <PDialog fullscreen={fullScreen} className={classes.removeRoundBorders} open={IsUserProfileSettingsDialogOpen} onClose={hideUserProfileSettingsDialog} aria-labelledby="form-dialog-add-entry-title">
         <DialogTitle id="form-dialog-add-entry-title">Profile Settings
           <IconButton aria-label="close" className={classes.dialogCloseButton} onClick={hideUserProfileSettingsDialog}>
             <CloseIcon />
@@ -773,10 +801,10 @@ setMonthTargetsDialogSavingAllowed(false);
         </DialogContent>
         <DialogActions>
         </DialogActions>
-      </Dialog>
+      </PDialog>
       }
       {/* MONTHLY TARGET DIALOG */}
-      <Dialog open={IsMonthTargetsDialogOpen} onClose={hideMonthTargetsDialog} aria-labelledby="form-dialog-add-entry-title">
+      <PDialog fullscreen={fullScreen} className={classes.removeRoundBorders} open={IsMonthTargetsDialogOpen} onClose={hideMonthTargetsDialog} aria-labelledby="form-dialog-add-entry-title">
       <DialogTitle id="form-dialog-add-entry-title">Monthly Target for {monthTargetsObject ? dateTimeFormatMonthName.format(new Date(monthTargetsObject.year,monthTargetsObject.month,1)) : ""}</DialogTitle>
       <DialogContent>
         {catMonthTargets.map(target => 
@@ -793,22 +821,22 @@ setMonthTargetsDialogSavingAllowed(false);
          )}
       </DialogContent>
       <DialogActions>
-        <Button onClick={hideMonthTargetsDialog} color="primary">
+        <PButton onClick={hideMonthTargetsDialog} color="primary">
           Cancel
-        </Button>
+        </PButton>
         <div className={classes.wrapper}>
-        <Button variant="contained" disabled={monthTargetsDialogSavingAllowed} onClick={submitMonthTargetsDialog} color="primary" disableElevation>
+        <PButton variant="contained" disabled={monthTargetsDialogSavingAllowed} onClick={submitMonthTargetsDialog} color="primary" disableElevation>
           Save
-        </Button>
+        </PButton>
         {monthTargetsDialogSavingAllowed && <CircularProgress size={24} className={classes.buttonProgress} />}
         </div>
       </DialogActions>
-      </Dialog>
+      </PDialog>
 
       {/* ADD ENTRY DIALOG */}
 
 
-      <Dialog open={IsAddEntryDialogOpen} onClose={hideAddEntryDialog} aria-labelledby="form-dialog-add-entry-title">
+      <PDialog fullscreen={fullScreen} className={classes.removeRoundBorders} open={IsAddEntryDialogOpen} onClose={hideAddEntryDialog} aria-labelledby="form-dialog-add-entry-title">
       <DialogTitle id="form-dialog-add-entry-title">{selectedEntryId ? "Edit" : "Add"} Entry</DialogTitle>
       <DialogContent>
         <DialogContentText>
@@ -936,21 +964,21 @@ setMonthTargetsDialogSavingAllowed(false);
       <DialogActions  className={classes.dialogActions}>
       
 
-        {selectedEntryId && <Button variant="contained" onClick={deleteSelectedEntry} color="secondary" disableElevation align="left" className={classes.deleteButton}>
+        {selectedEntryId && <PButton variant="contained" onClick={deleteSelectedEntry} color="secondary" disableElevation align="left" className={classes.deleteButton}>
           Delete
-        </Button>}
+        </PButton>}
         <Box className={classes.spacer} />
-        <Button onClick={hideAddEntryDialog} color="primary">
+        <PButton onClick={hideAddEntryDialog} color="primary">
           Cancel
-        </Button>
-        <Button variant="contained" onClick={submitAddEntryDialog} color="primary" disableElevation>
+        </PButton>
+        <PButton variant="contained" onClick={submitAddEntryDialog} color="primary" disableElevation>
           {selectedEntryId ? "Save" : "Add"}
-        </Button>
+        </PButton>
       </DialogActions>
-      </Dialog>
+      </PDialog>
 
       {/* LOGIN DIALOG */}
-      <Dialog open={IsLoginDialogOpen} onClose={hideLoginDialog} aria-labelledby="form-dialog-title">
+      <PDialog fullscreen={fullScreen} className={classes.removeRoundBorders} open={IsLoginDialogOpen} onClose={hideLoginDialog} aria-labelledby="form-dialog-title">
       <GoogleLogin
         clientId="483535558510-vhcru5umuiitnjiknlnc8g62s4v6p876.apps.googleusercontent.com"
         buttonText="Login"
@@ -999,15 +1027,15 @@ setMonthTargetsDialogSavingAllowed(false);
         {submittingLogin && 
           <CircularProgress  size={12}></CircularProgress>
         }
-        <Button onClick={hideLoginDialog} color="primary">
+        <PButton onClick={hideLoginDialog} color="primary">
           Cancel
-        </Button>
-        <Button disabled={submittingLogin} variant="contained" onClick={submitLoginDialog} color="primary">
+        </PButton>
+        <PButton disabled={submittingLogin} variant="contained" onClick={submitLoginDialog} color="primary">
         Login
-        </Button>
+        </PButton>
       </DialogActions>
       </form>
-      </Dialog>
+      </PDialog>
       {!loggedIn &&
         <Container style={{ height: 'calc(70vh)', lineHeight:'calc(70vh)' }}>
         

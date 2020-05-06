@@ -16,12 +16,16 @@ export default function MonthCard(props) {
   const dateTimeFormatMonthName = Intl.DateTimeFormat(Config.locale,Config.dateTimeFormatMonthName);
   
   const useStyles = makeStyles((theme) => ({
+    root: {
+      borderRadius:0
+    },
     cardMedia: {
       objectPosition: "50% 66%"
 
     },
     futureCard:{
-      backgroundColor: blueGrey[100]
+      backgroundColor: blueGrey[100],
+      borderRadius:0
     },
     spacer : {
       flexGrow:1
@@ -45,7 +49,7 @@ export default function MonthCard(props) {
 
   const classes = useStyles();
   return (
-<Card className={props.monthCategories.isInFuture() ? classes.futureCard : classes.root} variant={props.monthCategories.isInFuture() ? "outlined" : "elevation" }>
+<Card className={props.monthCategories.isInFuture() ? classes.futureCard : classes.root} variant="elevation">
                   
                     <CardHeader title={dateTimeFormatMonthName.format(new Date(props.monthCategories.year,props.monthCategories.month,1)).split(" ").join("\u00a0")}
                       action={
