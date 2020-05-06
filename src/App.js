@@ -454,9 +454,10 @@ setMonthTargetsDialogSavingAllowed(false);
   const [currentView, setCurrentView] = useState("entries");
   const avatarDisplay = createRef();
   
+  const sortingDataRegExp = new RegExp(/[-]/g);
   const sortDataEntries = () => {
     dataEntries.sort( (e1,e2) => {
-      const v1 = (e1.date - e2.date) 
+      const v1 = (e2.date.replace(sortingDataRegExp,"") - e1.date.replace(sortingDataRegExp,"")) 
       return v1 !== 0 ? v1 : e1.createdAt - e2.createdAt ;
     });
     setDataEntries(dataEntries);
@@ -512,6 +513,7 @@ setMonthTargetsDialogSavingAllowed(false);
       const targetsData = targetsResults.data.data; // data
       axios({method:"GET",url : apiEndpoint + "/updates",params: {updatedMillisecondsAgo:lastUpdateRun+500}, headers: getAuthHeader()}).then( result => {
         const changedEntries = result.data.data;
+        let oneChanged = false;
         for (let index = 0; index < changedEntries.length; index++) {
           const element = changedEntries[index];
           const e = dataEntries.findIndex((e) => e._id === element._id);
@@ -523,6 +525,7 @@ setMonthTargetsDialogSavingAllowed(false);
             }else
             {
               // new entry
+              oneChanged = true;
               dataEntries.push(element);
             }
           }
@@ -532,11 +535,16 @@ setMonthTargetsDialogSavingAllowed(false);
               dataEntries.splice(e,1);
             else
               dataEntries.splice(e,1,element);
+            oneChanged = true;
           }
           console.log(JSON.stringify(element));
         }
-        sortDataEntries();
-        updateAccounts(dataEntries,targetsData);
+        
+        if(oneChanged)
+        {
+          sortDataEntries();
+          updateAccounts(dataEntries,targetsData);
+        }
         lastUpdateRun = 0;
         scheduleDataUpdate();
       }).catch((error) => {
