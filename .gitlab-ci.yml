@@ -1,6 +1,3 @@
-# Official framework image. Look for the different tagged releases at:
-# https://hub.docker.com/r/library/node/tags/
-#image: node:8-alpine
 image: node:lts
 
 cache:
@@ -12,9 +9,6 @@ stages:
   - upload
 
 build:
-  only:
-    refs:
-      - master
   stage: build
   script:
     - npm ci
@@ -24,10 +18,7 @@ build:
     paths:
     - build
 
-upload:
-  only:
-    refs:
-      - master
+.upload_template: &upload_template
   stage: upload
   script:
     - mkdir -p ~/.ssh
@@ -36,3 +27,18 @@ upload:
     - echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config
     - echo "$SSH_PRIVATE_KEY" | ssh-add -
     - scp  -r build/* $DEPLOY_USER@$DEPLOY_HOST:$DEPLOY_PATH
+
+upload-prod:
+  <<: *upload_template
+  variables:
+    DEPLOY_PATH: $DEPLOY_PATH_PROD
+  only:
+    - tags
+
+upload-preview:
+  <<: *upload_template
+  variables:
+    DEPLOY_PATH: $DEPLOY_PATH_PREVIEW
+  only:
+    refs:
+      - master
