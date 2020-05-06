@@ -51,6 +51,8 @@ import InviteCode from './InviteCode';
 import PopupState, { bindTrigger, bindMenu } from 'material-ui-popup-state';
 import WastrelCard from './WastrelCard';
 import MainDrawer from './MainDrawer';
+import PImagePicker from './PImagePicker';
+//import PImagePicker from './PImagePicker';
 
 const theme = createMuiTheme({
   
@@ -437,6 +439,18 @@ setMonthTargetsDialogSavingAllowed(false);
   const ensureMonetaryValue = (v) => {
     return parseFloat( parseInt(v * 100)) / 100;
   }
+
+  /* -- image upload -- */
+  const [uploadDialogIsOpen, setUploadDialogIsOpen] = useState(true);
+  const [uploadDialogTarget, setUploadDialogTarget] = useState(null);
+  const showUploadDialog = (target) => {
+    setUploadDialogTarget(target);
+    setUploadDialogIsOpen(true);
+  }
+  const hideUploadDialog = () => {
+    setUploadDialogIsOpen(false);
+  }
+
   /* -- auth --*/
   //const loginUsername = useRef(null);
   //const loginPassword = useRef(null);
@@ -750,7 +764,7 @@ setMonthTargetsDialogSavingAllowed(false);
         <Toolbar>
 
           {loggedIn && 
-            <MainDrawer />
+            <MainDrawer categoryIconsClicked={() => showUploadDialog("category")} />
           }
         
           <Typography variant="h6" className={classes.title}>
@@ -783,6 +797,17 @@ setMonthTargetsDialogSavingAllowed(false);
         </Toolbar>
       </AppBar>
       
+      {/* Upload Dialog */}
+      <PDialog fullscreen={fullScreen} open={uploadDialogIsOpen} onClose={hideUploadDialog} aria-labelledby="form-dialog-title">
+        <DialogTitle id="form-dialog-title">{uploadDialogTarget === "category" ? "Category" : "Remunerator"} Icons
+        <IconButton aria-label="close" className={classes.dialogCloseButton} onClick={hideUploadDialog}>
+            <CloseIcon />
+        </IconButton>
+        </DialogTitle>
+        <DialogContent>
+            <PImagePicker></PImagePicker>
+        </DialogContent>
+      </PDialog>
       
       {/* User Profile Settings */}
       {userProfile && 

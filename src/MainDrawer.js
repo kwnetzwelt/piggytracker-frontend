@@ -11,13 +11,15 @@ import MenuIcon from '@material-ui/icons/Menu';
 
 import { IconButton,  Drawer, Divider, List, ListItem, ListItemIcon, ListItemText, Typography } from '@material-ui/core';
 
+
 /**
  * 
- * @param {user, refreshClicked, saveClicked, leaveClicked,value } props 
+ * @param { categoryIconsClicked } props 
  */
 export default function MainDrawer(props) {
   const [state, setState] = React.useState({
-    isOpen : false });
+    isOpen : false ,
+  });
   
   const toggleDrawer = ( open) => (event) => {
     if (event.type === 'keydown' && (event.key === 'Tab' || event.key === 'Shift')) {
@@ -26,10 +28,12 @@ export default function MainDrawer(props) {
 
     setState({ ...state, isOpen: open });
   }
-  const onActionClicked = (action) => (event) => {
+  const onActionClicked =  (event, target) => {
       event.preventDefault();
-      if(props.leaveClicked)
-          props.leaveClicked(this);
+      if(target == "category" && props.categoryIconsClicked)
+      {
+        props.categoryIconsClicked();
+      }
   }
   
   const drawerWidth = 320;
@@ -65,7 +69,7 @@ export default function MainDrawer(props) {
           </IconButton>
             <Drawer anchor="left" open={state.isOpen} onClose={toggleDrawer(false)} className={classes.drawer}>
             <List>
-              <ListItem button key="Edit Categories" disabled>
+              <ListItem button key="Category Icons" onClick={e => onActionClicked(e,"category")}>
                 <ListItemIcon><CheckCircleIcon /></ListItemIcon>
                 <ListItemText primary="Edit Categories" />
               </ListItem>
@@ -88,7 +92,6 @@ export default function MainDrawer(props) {
             version: {process.env.REACT_APP_CURRENT_GIT_SHA}
             </Typography>
           </Drawer>
-
         </React.Fragment>            
   );
 }
