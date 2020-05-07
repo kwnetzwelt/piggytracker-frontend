@@ -34,10 +34,12 @@ import CheckCircleIcon from '@material-ui/icons/CheckCircle';
 import InfoIcon from '@material-ui/icons/Info';
 import ReceiptIcon from '@material-ui/icons/Receipt';
 import AccountBalanceIcon from '@material-ui/icons/AccountBalance';
-
+import MenuIcon from '@material-ui/icons/Menu';
 import MuiVirtualizedTable from 'mui-virtualized-table';
 import {AutoSizer} from 'react-virtualized';
 import Config from './Config.js';
+import API from './API.js';
+
 import {Accounts, MonthCategories} from './Accounts.js';
 import Grid from '@material-ui/core/Grid';
 import FormControl from '@material-ui/core/FormControl';
@@ -755,17 +757,21 @@ setMonthTargetsDialogSavingAllowed(false);
     });
     
   }
-
-
+  const [mainDrawerOpen, setMainDrawerOpen] = React.useState(false);
+  const mainDrawerRef = React.createRef();
+  const toggleDrawer = (value) => {
+    setMainDrawerOpen(true);
+  }
   return (
     <div className="App">
       <ThemeProvider theme={theme}>
       <AppBar className={classes.appBar}>
         <Toolbar>
 
-          {loggedIn && 
-            <MainDrawer categoryIconsClicked={() => showUploadDialog("category")} />
-          }
+        <IconButton edge="start" className={classes.menuButton} color="inherit" aria-label="menu" onClick={(e) => toggleDrawer(true)}>
+            <MenuIcon />
+          </IconButton>
+          
         
           <Typography variant="h6" className={classes.title}>
             piggytracker
@@ -797,18 +803,9 @@ setMonthTargetsDialogSavingAllowed(false);
         </Toolbar>
       </AppBar>
       
-      {/* Upload Dialog */}
-      <PDialog fullscreen={fullScreen} open={uploadDialogIsOpen} onClose={hideUploadDialog} aria-labelledby="form-dialog-title">
-        <DialogTitle id="form-dialog-title">{uploadDialogTarget === "category" ? "Category" : "Remunerator"} Icons
-        <IconButton aria-label="close" className={classes.dialogCloseButton} onClick={hideUploadDialog}>
-            <CloseIcon />
-        </IconButton>
-        </DialogTitle>
-        <DialogContent>
-            <PImagePicker></PImagePicker>
-        </DialogContent>
-      </PDialog>
-      
+      {loggedIn && 
+        <MainDrawer isOpen={mainDrawerOpen} onClosed={() => setMainDrawerOpen(false)} accountValues={accountValues} />
+      }
       {/* User Profile Settings */}
       {userProfile && 
       <PDialog fullscreen={fullScreen} className={classes.removeRoundBorders} open={IsUserProfileSettingsDialogOpen} onClose={hideUserProfileSettingsDialog} aria-labelledby="form-dialog-add-entry-title">

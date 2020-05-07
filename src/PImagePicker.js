@@ -1,12 +1,10 @@
 import React from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import { ImagePicker as ReactImagePicker} from 'react-file-picker';
-import { Paper, InputBase, IconButton } from '@material-ui/core';
-import CloudUploadIcon from '@material-ui/icons/CloudUpload';
-import DeleteForeverIcon from '@material-ui/icons/DeleteForever';
+import { InputBase, Avatar } from '@material-ui/core';
  /**
  * 
- * @param { deleteClicked } props 
+ * @param { deleteClicked, src, alt } props 
  */
 export default function PImagePicker (props) {
     const useStyles = makeStyles((theme) => ({
@@ -45,22 +43,15 @@ export default function PImagePicker (props) {
 return (
            
     
-         
-        <Paper component="form" className={classes.root}>
-
-                    <CloudUploadIcon className={classes.startIcon}/>
                     <ReactImagePicker
     extensions={['jpg', 'jpeg', 'png']}
-    dims={{minWidth: 100, maxWidth: 500, minHeight: 100, maxHeight: 500}}><InputBase
+    onChange={base64 => {props.src = base64}}
+    dims={{minWidth: 100, maxWidth: 500, minHeight: 100, maxHeight: 500}}><Avatar
                 className={classes.input}
-                placeholder="codeword1"
-                value={""}
+                alt={props.alt}
+                src={props.src}
                 inputProps={{ 'aria-label': 'invite code' }}
                 readOnly
                 /></ReactImagePicker>
-                <IconButton color="primary" type="submit" className={classes.iconButton} aria-label="Delete" onClick={onDeleteClicked}>
-                    <DeleteForeverIcon />
-                </IconButton>
-        </Paper>
 );
 }
