@@ -1,35 +1,38 @@
 import React from 'react';
 
+import { FilePicker as ReactImagePicker} from 'react-file-picker';
 import { makeStyles } from '@material-ui/core/styles';
 
-import CloudUploadIcon from '@material-ui/icons/CloudUpload';
-import CloudDownloadIcon from '@material-ui/icons/CloudDownload';
-import AccountCircleIcon from '@material-ui/icons/AccountCircle';
-import CheckCircleIcon from '@material-ui/icons/CheckCircle';
 import ChevronLeftIcon from '@material-ui/icons/ChevronLeft';
 import ChevronRightIcon from '@material-ui/icons/ChevronRight';
-import MenuIcon from '@material-ui/icons/Menu';
+import MoreVertIcon from '@material-ui/icons/MoreVert';
+import CloseIcon from '@material-ui/icons/Close';
 
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemText from '@material-ui/core/ListItemText';
 import ListSubheader from '@material-ui/core/ListSubheader';
-import { IconButton,  Drawer, Divider, Typography, useTheme } from '@material-ui/core';
-
+import { IconButton,  Drawer, Divider, Typography, useTheme, ListItemAvatar, Avatar, ListItemSecondaryAction, Box, Dialog, DialogContent, DialogTitle, DialogActions, MenuItem, Menu } from '@material-ui/core';
+import API from './API';
+import Axios from 'axios';
 
 /**
  * 
- * @param { categoryIconsClicked, isOpen, onClosed, accountValues } props 
+ * @param { categoryIconsClicked, isOpen, onClosed, accountValues, user } props 
  */
 export default function MainDrawer(props) {
   React.useEffect(
     () => {
       console.log("changed " + props.isOpen);
-      setState({ ...state, isOpen: props.isOpen });
+      setState({ ...state, isOpen: props.isOpen, user: props.user });
     }
   ,[props]);
   const [state, setState] = React.useState({
     isOpen : props.isOpen ,
+    user : props.user,
+    elementType : null,
+    elementKey: null,
+    elementMenuOpen : false
   });
   
   const toggleDrawer = (open) => (event) => {
@@ -50,7 +53,31 @@ export default function MainDrawer(props) {
         props.categoryIconsClicked();
       }
   }
-  
+  const beginEditingRemuneratorEntry = (e,item) => {
+    setState({...state, elementType:"Remunerator", elementKey: item, elementMenuOpen : e.target});
+  }
+  const beginEditingCategoryEntry = (e,item) => {
+    setState({...state, elementType:"Category", elementKey: item, elementMenuOpen: e.target});
+  }
+  const uploadImage =(fileObject) => {
+    
+    var data = new FormData();
+    data.append(state.elementType.toLowerCase(), API.urlify(state.elementKey));
+    data.append('image', fileObject);
+
+    Axios({method:"POST",url : API.apiEndpoint + "/images/" + state.elementType.toLowerCase(), headers: API.getAuthHeader(), data:data}).then( result => {
+        
+      console.log(JSON.stringify(result));      
+    }).finally(() =>{
+      
+    });
+
+
+  }
+  const hideElementMenu = (e) => {
+    setState({...state, elementMenuOpen: null});
+  }
+
   const drawerWidth = 320;
   const useStyles = makeStyles((theme) => ({
     
@@ -111,7 +138,18 @@ export default function MainDrawer(props) {
                     <ListSubheader>Categories</ListSubheader>
                     {props.accountValues.categories.map((item) => (
                       <ListItem key={`item-categories-${item}`}>
+                        <ListItemAvatar>
+                          <Avatar src={API.getCategoryUrl(state.user.groupId,item)}>
+                            {API.getUserInitials(item)}
+                          </Avatar>
+                        </ListItemAvatar>
                         <ListItemText primary={`${item}`} />
+                        
+                        <ListItemSecondaryAction>
+                          <IconButton edge="end" aria-label="menu" onClick={(e) => beginEditingCategoryEntry(e,item)}>
+                            <MoreVertIcon />
+                          </IconButton>
+                        </ListItemSecondaryAction>
                       </ListItem>
                     ))}
                   </ul>
@@ -121,10 +159,26 @@ export default function MainDrawer(props) {
             <List className={classes.list} subheader={<li />}>
                 <li key="section-remunerators" className={classes.listSection}>
                   <ul className={classes.ul}>
-                    <ListSubheader>Remunerators</ListSubheader>
+                    <ListSubheader>
+                      Remunerators
+                    </ListSubheader>
                     {props.accountValues.remunerators.map((item) => (
                       <ListItem key={`item-remunerators-${item}`}>
+
+                        <ListItemAvatar>
+                          <Avatar src={API.getRemuneratorUrl(props.user.groupId,item)}>
+                            {API.getUserInitials(item)}
+                          </Avatar>
+                        </ListItemAvatar>
                         <ListItemText primary={`${item}`} />
+                        
+                        <ListItemSecondaryAction>
+                          <IconButton edge="end" aria-label="menu" onClick={(e) => beginEditingRemuneratorEntry(e,item)}>
+                            <MoreVertIcon />
+                          </IconButton>
+
+                          
+                        </ListItemSecondaryAction>
                       </ListItem>
                     ))}
                   </ul>
@@ -135,6 +189,19 @@ export default function MainDrawer(props) {
             version: {process.env.REACT_APP_CURRENT_GIT_SHA}
             </Typography>
           </Drawer>
+          <Menu
+            id="MainDrawer-Element-Options-Menu"
+            anchorEl={state.elementMenuOpen}
+            keepMounted
+            open={Boolean(state.elementMenuOpen)}
+            onClose={(e) => hideElementMenu()}
+          >
+            <ReactImagePicker
+              extensions={['jpg', 'jpeg', 'png']}
+              onChange={FileObject => {uploadImage(FileObject)}}
+              dims={{minWidth: 32, maxWidth: 2500, minHeight: 32, maxHeight: 2500}}><MenuItem>Change Icon</MenuItem></ReactImagePicker>
+          </Menu>
+
         </React.Fragment>            
   );
 }

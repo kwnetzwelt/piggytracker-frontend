@@ -206,7 +206,7 @@ function App() {
 
   const fullScreen = useMediaQuery(theme.breakpoints.down('sm'));
 
-  const apiEndpoint = Config.apiEndpoint + Config.apiEndpointPrefixRoute;
+  const apiEndpoint = API.apiEndpoint;
   const classes = useStyles();
   
   useEffect(() => {
@@ -258,7 +258,7 @@ function App() {
   const submitMonthTargetsDialog = () => {
     setMonthTargetsDialogSavingAllowed(true);
       const updatedTargetData = accountValues.setTargets(monthTargetsObject.tid,catMonthTargets);
-      axios({method: updatedTargetData._id ? "PUT" : "POST",url : apiEndpoint + "/targets" + (updatedTargetData._id ? ("/"+updatedTargetData._id) : ("")), headers: getAuthHeader(), data:updatedTargetData}).then( result => {
+      axios({method: updatedTargetData._id ? "PUT" : "POST",url : apiEndpoint + "/targets" + (updatedTargetData._id ? ("/"+updatedTargetData._id) : ("")), headers: API.getAuthHeader(), data:updatedTargetData}).then( result => {
         
         updatedTargetData._id = result.data._id;
         console.log("done");      
@@ -363,7 +363,7 @@ setMonthTargetsDialogSavingAllowed(false);
   }
 
   const deleteSelectedEntry = (e) => {
-    axios({method:"DELETE",url : apiEndpoint + "/bills/"+selectedEntryId, headers: getAuthHeader()}).then( result => {
+    axios({method:"DELETE",url : apiEndpoint + "/bills/"+selectedEntryId, headers: API.getAuthHeader()}).then( result => {
       hideAddEntryDialog();
       var index = dataEntries.findIndex((e) => e._id === selectedEntryId);
       dataEntries.splice(index,1);
@@ -415,7 +415,7 @@ setMonthTargetsDialogSavingAllowed(false);
     {
      entry._id = selectedEntryId;
     }
-    axios({method:selectedEntryId ? "PUT" : "POST",url : apiEndpoint + "/bills" + (selectedEntryId ? ("/"+selectedEntryId) : ("")), headers: getAuthHeader(), data:entry}).then( result => {
+    axios({method:selectedEntryId ? "PUT" : "POST",url : apiEndpoint + "/bills" + (selectedEntryId ? ("/"+selectedEntryId) : ("")), headers: API.getAuthHeader(), data:entry}).then( result => {
 
       hideAddEntryDialog();
       
@@ -479,9 +479,9 @@ setMonthTargetsDialogSavingAllowed(false);
     setDataEntries(dataEntries);
   }
   const restoreUserProfile = () => {
-    axios({method:"GET",url : apiEndpoint + "/login", headers: getAuthHeader()}).then( result => {
+    axios({method:"GET",url : apiEndpoint + "/login", headers: API.getAuthHeader()}).then( result => {
       var receivedUserProfile = transformUserProfile(result.data);
-      loginComplete(receivedUserProfile, getStoredAuthToken());    
+      loginComplete(receivedUserProfile, API.getStoredAuthToken());    
     }).catch((err) => {
       console.log("restoreUserProfile failed");
       setLoggedIn(false);
@@ -502,7 +502,7 @@ setMonthTargetsDialogSavingAllowed(false);
     }}).then(result =>{
       var receivedUserProfile = transformUserProfile(result.data.userProfile);
       
-      storeAuthToken(result.data.token);
+      API.storeAuthToken(result.data.token);
       loginComplete(receivedUserProfile, );
       
     });
@@ -525,9 +525,9 @@ setMonthTargetsDialogSavingAllowed(false);
       return;
     }
 
-    axios({method:"GET",url : apiEndpoint + "/targets", headers:getAuthHeader()}).then( targetsResults => {
+    axios({method:"GET",url : apiEndpoint + "/targets", headers : API.getAuthHeader()}).then( targetsResults => {
       const targetsData = targetsResults.data.data; // data
-      axios({method:"GET",url : apiEndpoint + "/updates",params: {updatedMillisecondsAgo:lastUpdateRun+500}, headers: getAuthHeader()}).then( result => {
+      axios({method:"GET",url : apiEndpoint + "/updates",params: {updatedMillisecondsAgo:lastUpdateRun+500}, headers: API.getAuthHeader()}).then( result => {
         const changedEntries = result.data.data;
         let oneChanged = false;
         for (let index = 0; index < changedEntries.length; index++) {
@@ -586,9 +586,9 @@ setMonthTargetsDialogSavingAllowed(false);
 
   const tempInsertData = [];
   const fetchAllData = (pageSize,page) => {
-      axios({method:"GET",url : apiEndpoint + "/targets", headers:getAuthHeader()}).then( targetsResults => {
+      axios({method:"GET",url : apiEndpoint + "/targets", headers : API.getAuthHeader()}).then( targetsResults => {
         var targetsData = targetsResults.data.data; // data
-        axios({method:"GET",url : apiEndpoint + "/bills",params: {perPage:pageSize,page:page+1}, headers: getAuthHeader()}).then( result => {
+        axios({method:"GET",url : apiEndpoint + "/bills",params: {perPage:pageSize,page:page+1}, headers: API.getAuthHeader()}).then( result => {
           var data = result.data.data;
           var total = result.data.total;
 
@@ -614,30 +614,9 @@ setMonthTargetsDialogSavingAllowed(false);
     setDataEntries([]);
     setUserProfile(null);
     setLoggedIn(false);
-    storeAuthToken(null);
+    API.storeAuthToken(null);
   }
   
-  const getStoredAuthToken = () => {
-    return localStorage.getItem('id_token');
-  }
-  const getAuthHeader = () => {
-    return {'Authorization' : "Bearer " + getStoredAuthToken()};
-  }
-  const restoreAuthToken = () => {
-    var authToken = localStorage.getItem("id_token");
-    if(authToken)
-    {
-      return true;
-    }
-    return false;
-  }
-  const storeAuthToken = (token) =>
-  {
-    if(token)
-      localStorage.setItem("id_token", token);
-    else
-      localStorage.removeItem("id_token");
-  }
   const showLoginDialog = () => {
     loginDialogOpen(true);
     setLoginError("");
@@ -686,7 +665,7 @@ setMonthTargetsDialogSavingAllowed(false);
     ).then(result => {
       setSubmittingLogin(false);
       setLoginError("");
-      storeAuthToken(result.data.token);
+      API.storeAuthToken(result.data.token);
       restoreUserProfile(); 
     }).catch(error => {
       setSubmittingLogin(false);
@@ -709,7 +688,7 @@ setMonthTargetsDialogSavingAllowed(false);
     });
   }
   const restoreLoginState = () => {
-    if(restoreAuthToken())
+    if(API.restoreAuthToken())
     {
       restoreUserProfile();
     }
@@ -728,7 +707,7 @@ setMonthTargetsDialogSavingAllowed(false);
   }
   const getNewInviteCode = (inviteCodeElement) => {
 
-    axios({method:"GET",url:apiEndpoint + '/invites', headers:getAuthHeader()}
+    axios({method:"GET",url:apiEndpoint + '/invites', headers: API.getAuthHeader()}
     ).then(result => {
       setGeneratedInviteCode(result.data.code);
       inviteCodeElement.current.setCodeValue(result.data.code);
@@ -737,7 +716,7 @@ setMonthTargetsDialogSavingAllowed(false);
   }
 
   const storeInviteCode = (inviteCodeElement) => {
-    axios({method:"POST",url:apiEndpoint + '/invites', headers:getAuthHeader(), data:{code:inviteCodeElement.substr(0,9)}, }
+    axios({method:"POST",url:apiEndpoint + '/invites', headers: API.getAuthHeader(), data:{code:inviteCodeElement.substr(0,9)}, }
     ).then(result => {
       
       var receivedUserProfile = transformUserProfile(result.data);
@@ -748,7 +727,7 @@ setMonthTargetsDialogSavingAllowed(false);
   }
   
   const leaveGroup = (inviteCodeElement) => {
-    axios({method:"DELETE",url:apiEndpoint + '/invites', headers:getAuthHeader()} ).then(result => {
+    axios({method:"DELETE",url:apiEndpoint + '/invites', headers : API.getAuthHeader()} ).then(result => {
       
       var receivedUserProfile = transformUserProfile(result.data);
       setUserProfile (receivedUserProfile);
@@ -804,7 +783,7 @@ setMonthTargetsDialogSavingAllowed(false);
       </AppBar>
       
       {loggedIn && 
-        <MainDrawer isOpen={mainDrawerOpen} onClosed={() => setMainDrawerOpen(false)} accountValues={accountValues} />
+        <MainDrawer isOpen={mainDrawerOpen} onClosed={() => setMainDrawerOpen(false)} user={userProfile} accountValues={accountValues} />
       }
       {/* User Profile Settings */}
       {userProfile && 
