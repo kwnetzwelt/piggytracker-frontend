@@ -217,7 +217,7 @@ function App() {
 
   /* -- bottom navigation --*/
   
-  const [value, setValue] = React.useState('recents');
+  const [value, setValue] = React.useState('entries');
 
   const dateTimeFormat = Intl.DateTimeFormat(Config.locale,Config.dateTimeFormat);
   const dateTimeFormatMonthName = Intl.DateTimeFormat(Config.locale,Config.dateTimeFormatMonthName);
@@ -297,16 +297,16 @@ setMonthTargetsDialogSavingAllowed(false);
         }}
         badgeContent={
           <SmallAvatar alt={row.category} 
-        src={Config.getCategoryUrl(row.category)}
+        src={API.getCategoryUrl(userProfile.groupId, row.category)}
         />}
       >
-        <Avatar alt={row.remunerator} src={Config.getAvatarUrl(row.remunerator)} />
+        <Avatar alt={row.remunerator} src={API.getRemuneratorUrl(userProfile.groupId, row.remunerator)} />
         </Badge>
         </div>) },
       {   header: "Date", width: 91 , name:"date",  cell:(row) => dateTimeFormat.format(new Date(row.date))},
       {   header: "Value",  name:"value", alignItems: "right",      cell:(row) => Config.toCurrencyValue(row.value ?? 0)} ,
       {   header: "Category", name: "category", cell:row => (
-      <Chip label={row.category} variant="outlined" size="small" avatar={<Avatar src={Config.getCategoryUrl(row.category)} />} />) }
+      <Chip label={row.category} variant="outlined" size="small" avatar={<Avatar src={API.getCategoryUrl(userProfile.groupId, row.category)} />} />) }
       
       
     ];
@@ -812,7 +812,7 @@ setMonthTargetsDialogSavingAllowed(false);
         <Box>
             <TextField id={target.category}
               InputProps={{
-                startAdornment: <InputAdornment position="start"><SmallAvatar src={Config.getCategoryUrl(target.category)} /></InputAdornment>,
+                startAdornment: <InputAdornment position="start"><SmallAvatar src={API.getCategoryUrl(userProfile.groupId, target.category)} /></InputAdornment>,
               }}
               type="number"
               label={target.category}
@@ -883,7 +883,7 @@ setMonthTargetsDialogSavingAllowed(false);
            >
           {accountValues.categories.map( (category) =>
             <MenuItem value={category}>
-              <Chip label={category} variant="outlined" size="small" avatar={<Avatar src={Config.getCategoryUrl(category)} />} />
+              <Chip label={category} variant="outlined" size="small" avatar={<Avatar src={API.getCategoryUrl(userProfile.groupId, category)} />} />
               </MenuItem>
           )}
           </Select>
@@ -920,7 +920,7 @@ setMonthTargetsDialogSavingAllowed(false);
               >
               {accountValues.remunerators.map( (user) =>
                 <MenuItem value={user}>
-                  <Chip label={user} variant="outlined" size="small" avatar={<Avatar src={Config.getAvatarUrl(user)} />} />
+                  <Chip label={user} variant="outlined" size="small" avatar={<Avatar src={API.getRemuneratorUrl(userProfile.groupId, user)} />} />
                 </MenuItem>
               )}
               </Select>
@@ -1056,15 +1056,18 @@ setMonthTargetsDialogSavingAllowed(false);
       }   
       {loggedIn && currentView === "wastrel" && 
         
-        <div style={{ height: 'calc(90vh-56px)',paddingLeft: 20, paddingRight: 20,paddingTop: 20 }}>
-              <Grid container justify="center" spacing={2} className={classes.accountsGrid}>
+        <div style={{ height: 'calc(90vh-56px)',paddingTop: 10 }}>
+          <Container maxWidth="sx">
+              <Grid container style={{width:"auto", margin:"0 auto"}} spacing={1} className={classes.accountsGrid}>
           {accountValues.remuneratorSpendings.map((wastrel,i,all) =>
-              <Grid item>
-                <WastrelCard wastrel={wastrel} next={(all.length > (i+1))?all[i+1]:undefined} item />
+              <Grid item xs={12}>
+                <WastrelCard wastrel={wastrel} user={userProfile} next={(all.length > (i+1))?all[i+1]:undefined} item />
               </Grid>
               
           )}
           </Grid>
+          </Container>
+
         </div>
       } 
       {loggedIn && (currentView === "entries") && 
@@ -1106,7 +1109,7 @@ setMonthTargetsDialogSavingAllowed(false);
               <Grid container justify="center" spacing={1} className={classes.accountsGrid}>
 
                     {accountValues.categoryMonths.map((catMonth) => 
-                <Grid key={catMonth.month} item xs>
+                <Grid key={'month-'+ catMonth.tid} item xs>
                   <MonthCard monthCategories={catMonth} accounts={accountValues} menuToggle={(e,tid) =>{catMonthOptionsMenuToggle(e,tid);}} />
                 </Grid>
                     )}
@@ -1120,6 +1123,7 @@ setMonthTargetsDialogSavingAllowed(false);
   onChange={(event, newValue) => {
     setValue(newValue);
     setCurrentView(views[newValue]);
+    
   }}
   showLabels
   className={classes.bottomNavigation}

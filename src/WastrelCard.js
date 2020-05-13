@@ -2,31 +2,32 @@ import React from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 
 import Config from './Config';
+import API from './API';
 import { Card, CardMedia, CardContent, Typography } from '@material-ui/core';
 
 /**
  * 
- * @param {wastrel,next} props 
+ * @param {wastrel,next, user} props 
  */
 export default function WastrelCard(props) {
 
   const useStyles = makeStyles((theme) => ({
     root: {
         display: 'flex',
-        width:350,
         borderRadius:0
       },
       details: {
         display: 'flex',
+        width:"66%",
         flexDirection: 'column',
       },
       content: {
-        flex: '1 0 auto',
-        width: 200
+        flexGrow:1,
       },
       cover: {
-        width: 150,
-        height:150,
+        width:"34%",
+        height:"auto",
+        flexGrow:0,
         backgroundSize:"cover"
       },
       controls: {
@@ -39,6 +40,7 @@ export default function WastrelCard(props) {
           fontWeight:"bolder"
       },
       wastrelDeltaText: {
+        fontSize:12
       },
   }));
 
@@ -63,7 +65,7 @@ export default function WastrelCard(props) {
       </div>
       <CardMedia
         className={classes.cover}
-        image={Config.getAvatarUrl(props.wastrel.remunerator)}
+        image={API.getRemuneratorUrl(props.user.groupId, props.wastrel.remunerator)}
         title={props.wastrel.remunerator}
       />
     </Card>
