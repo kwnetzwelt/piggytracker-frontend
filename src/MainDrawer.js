@@ -6,21 +6,30 @@ import { makeStyles } from '@material-ui/core/styles';
 import ChevronLeftIcon from '@material-ui/icons/ChevronLeft';
 import ChevronRightIcon from '@material-ui/icons/ChevronRight';
 import MoreVertIcon from '@material-ui/icons/MoreVert';
+import ReloadIcon from '@material-ui/icons/RefreshTwoTone';
 import CloseIcon from '@material-ui/icons/Close';
 
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemText from '@material-ui/core/ListItemText';
 import ListSubheader from '@material-ui/core/ListSubheader';
-import { IconButton,  Drawer, Divider, Typography, useTheme, ListItemAvatar, Avatar, ListItemSecondaryAction, Box, Dialog, DialogContent, DialogTitle, DialogActions, MenuItem, Menu } from '@material-ui/core';
+import { IconButton,  Drawer, Divider, Typography, useTheme, ListItemAvatar, Avatar, ListItemSecondaryAction, Box, Dialog, DialogContent, DialogTitle, DialogActions, MenuItem, Menu, Snackbar, Button, Slide } from '@material-ui/core';
 import API from './API';
 import Axios from 'axios';
+import MuiAlert from '@material-ui/lab/Alert';
+
+
 
 /**
  * 
  * @param { categoryIconsClicked, isOpen, onClosed, accountValues, user } props 
  */
 export default function MainDrawer(props) {
+
+  function Alert(props) {
+    return <MuiAlert elevation={6} variant="filled" {...props} />;
+  }
+
   React.useEffect(
     () => {
       console.log("changed " + props.isOpen);
@@ -32,7 +41,8 @@ export default function MainDrawer(props) {
     user : props.user,
     elementType : null,
     elementKey: null,
-    elementMenuOpen : false
+    elementMenuOpen : null,
+    uploadInfo : ""
   });
   
   const toggleDrawer = (open) => (event) => {
@@ -64,16 +74,30 @@ export default function MainDrawer(props) {
     var data = new FormData();
     data.append(state.elementType.toLowerCase(), API.urlify(state.elementKey));
     data.append('image', fileObject);
-
+    
     Axios({method:"POST",url : API.apiEndpoint + "/images/" + state.elementType.toLowerCase(), headers: API.getAuthHeader(), data:data}).then( result => {
-        
-      console.log(JSON.stringify(result));      
-    }).finally(() =>{
+      
+      setState({...state, uploadInfo: "success", uploadInfoText:"Upload succeeded!", elementMenuOpen: null});
+      console.log(JSON.stringify(result));
+    }).catch((e) => {
+      setState({...state, uploadInfo: "error", uploadInfoText:"Upload failed!",elementMenuOpen: null});
+    }) .finally(() =>{
       
     });
 
 
   }
+  const handleInfoRefresh = (e) => {
+    window.location.reload(false);
+  }
+  const handleInfoClose = (e, reason) => {
+    if (reason === 'clickaway') {
+      return;
+    }
+
+    setState({...state, uploadInfo: ""});
+  }
+
   const hideElementMenu = (e) => {
     setState({...state, elementMenuOpen: null});
   }
@@ -126,7 +150,11 @@ export default function MainDrawer(props) {
             classes={{
               paper: classes.drawerPaper,
             }}>
-            <div className={classes.drawerHeader}>
+            <div className={classes.drawerHeader} style={{display:"flex"}}>
+              <IconButton onClick={(e) => window.location.reload()}>
+                <ReloadIcon />
+              </IconButton>
+              <div style={{flexGrow:1}}></div>
               <IconButton onClick={toggleDrawer(false)}>
                 {theme.direction === 'ltr' ? <ChevronLeftIcon /> : <ChevronRightIcon />}
               </IconButton>
@@ -201,7 +229,18 @@ export default function MainDrawer(props) {
               onChange={FileObject => {uploadImage(FileObject)}}
               dims={{minWidth: 32, maxWidth: 2500, minHeight: 32, maxHeight: 2500}}><MenuItem>Change Icon</MenuItem></ReactImagePicker>
           </Menu>
-
+          <Snackbar
+            autoHideDuration={2000}
+            anchorOrigin={{
+              vertical: 'bottom',
+              horizontal: 'center',
+            }}
+            open={Boolean(state.uploadInfo)}
+            onClose={handleInfoClose}>
+            <Alert onClose={handleInfoClose} severity={state.uploadInfo}>
+              {state.uploadInfoText}
+            </Alert>
+          </Snackbar>
         </React.Fragment>            
   );
 }
