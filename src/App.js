@@ -34,10 +34,12 @@ import CheckCircleIcon from '@material-ui/icons/CheckCircle';
 import InfoIcon from '@material-ui/icons/Info';
 import ReceiptIcon from '@material-ui/icons/Receipt';
 import AccountBalanceIcon from '@material-ui/icons/AccountBalance';
-
+import MenuIcon from '@material-ui/icons/Menu';
 import MuiVirtualizedTable from 'mui-virtualized-table';
 import {AutoSizer} from 'react-virtualized';
 import Config from './Config.js';
+import API from './API.js';
+
 import {Accounts, MonthCategories} from './Accounts.js';
 import Grid from '@material-ui/core/Grid';
 import FormControl from '@material-ui/core/FormControl';
@@ -51,6 +53,8 @@ import InviteCode from './InviteCode';
 import PopupState, { bindTrigger, bindMenu } from 'material-ui-popup-state';
 import WastrelCard from './WastrelCard';
 import MainDrawer from './MainDrawer';
+import PImagePicker from './PImagePicker';
+//import PImagePicker from './PImagePicker';
 
 const theme = createMuiTheme({
   
@@ -202,7 +206,7 @@ function App() {
 
   const fullScreen = useMediaQuery(theme.breakpoints.down('sm'));
 
-  const apiEndpoint = Config.apiEndpoint + Config.apiEndpointPrefixRoute;
+  const apiEndpoint = API.apiEndpoint;
   const classes = useStyles();
   
   useEffect(() => {
@@ -213,7 +217,7 @@ function App() {
 
   /* -- bottom navigation --*/
   
-  const [value, setValue] = React.useState('recents');
+  const [value, setValue] = React.useState('entries');
 
   const dateTimeFormat = Intl.DateTimeFormat(Config.locale,Config.dateTimeFormat);
   const dateTimeFormatMonthName = Intl.DateTimeFormat(Config.locale,Config.dateTimeFormatMonthName);
@@ -254,7 +258,7 @@ function App() {
   const submitMonthTargetsDialog = () => {
     setMonthTargetsDialogSavingAllowed(true);
       const updatedTargetData = accountValues.setTargets(monthTargetsObject.tid,catMonthTargets);
-      axios({method: updatedTargetData._id ? "PUT" : "POST",url : apiEndpoint + "/targets" + (updatedTargetData._id ? ("/"+updatedTargetData._id) : ("")), headers: getAuthHeader(), data:updatedTargetData}).then( result => {
+      axios({method: updatedTargetData._id ? "PUT" : "POST",url : apiEndpoint + "/targets" + (updatedTargetData._id ? ("/"+updatedTargetData._id) : ("")), headers: API.getAuthHeader(), data:updatedTargetData}).then( result => {
         
         updatedTargetData._id = result.data._id;
         console.log("done");      
@@ -293,16 +297,16 @@ setMonthTargetsDialogSavingAllowed(false);
         }}
         badgeContent={
           <SmallAvatar alt={row.category} 
-        src={Config.getCategoryUrl(row.category)}
+        src={API.getCategoryUrl(userProfile.groupId, row.category)}
         />}
       >
-        <Avatar alt={row.remunerator} src={Config.getAvatarUrl(row.remunerator)} />
+        <Avatar alt={row.remunerator} src={API.getRemuneratorUrl(userProfile.groupId, row.remunerator)} />
         </Badge>
         </div>) },
       {   header: "Date", width: 91 , name:"date",  cell:(row) => dateTimeFormat.format(new Date(row.date))},
       {   header: "Value",  name:"value", alignItems: "right",      cell:(row) => Config.toCurrencyValue(row.value ?? 0)} ,
       {   header: "Category", name: "category", cell:row => (
-      <Chip label={row.category} variant="outlined" size="small" avatar={<Avatar src={Config.getCategoryUrl(row.category)} />} />) }
+      <Chip label={row.category} variant="outlined" size="small" avatar={<Avatar src={API.getCategoryUrl(userProfile.groupId, row.category)} />} />) }
       
       
     ];
@@ -359,7 +363,7 @@ setMonthTargetsDialogSavingAllowed(false);
   }
 
   const deleteSelectedEntry = (e) => {
-    axios({method:"DELETE",url : apiEndpoint + "/bills/"+selectedEntryId, headers: getAuthHeader()}).then( result => {
+    axios({method:"DELETE",url : apiEndpoint + "/bills/"+selectedEntryId, headers: API.getAuthHeader()}).then( result => {
       hideAddEntryDialog();
       var index = dataEntries.findIndex((e) => e._id === selectedEntryId);
       dataEntries.splice(index,1);
@@ -411,7 +415,7 @@ setMonthTargetsDialogSavingAllowed(false);
     {
      entry._id = selectedEntryId;
     }
-    axios({method:selectedEntryId ? "PUT" : "POST",url : apiEndpoint + "/bills" + (selectedEntryId ? ("/"+selectedEntryId) : ("")), headers: getAuthHeader(), data:entry}).then( result => {
+    axios({method:selectedEntryId ? "PUT" : "POST",url : apiEndpoint + "/bills" + (selectedEntryId ? ("/"+selectedEntryId) : ("")), headers: API.getAuthHeader(), data:entry}).then( result => {
 
       hideAddEntryDialog();
       
@@ -437,6 +441,18 @@ setMonthTargetsDialogSavingAllowed(false);
   const ensureMonetaryValue = (v) => {
     return parseFloat( parseInt(v * 100)) / 100;
   }
+
+  /* -- image upload -- */
+  const [uploadDialogIsOpen, setUploadDialogIsOpen] = useState(true);
+  const [uploadDialogTarget, setUploadDialogTarget] = useState(null);
+  const showUploadDialog = (target) => {
+    setUploadDialogTarget(target);
+    setUploadDialogIsOpen(true);
+  }
+  const hideUploadDialog = () => {
+    setUploadDialogIsOpen(false);
+  }
+
   /* -- auth --*/
   //const loginUsername = useRef(null);
   //const loginPassword = useRef(null);
@@ -463,9 +479,9 @@ setMonthTargetsDialogSavingAllowed(false);
     setDataEntries(dataEntries);
   }
   const restoreUserProfile = () => {
-    axios({method:"GET",url : apiEndpoint + "/login", headers: getAuthHeader()}).then( result => {
+    axios({method:"GET",url : apiEndpoint + "/login", headers: API.getAuthHeader()}).then( result => {
       var receivedUserProfile = transformUserProfile(result.data);
-      loginComplete(receivedUserProfile, getStoredAuthToken());    
+      loginComplete(receivedUserProfile, API.getStoredAuthToken());    
     }).catch((err) => {
       console.log("restoreUserProfile failed");
       setLoggedIn(false);
@@ -486,7 +502,7 @@ setMonthTargetsDialogSavingAllowed(false);
     }}).then(result =>{
       var receivedUserProfile = transformUserProfile(result.data.userProfile);
       
-      storeAuthToken(result.data.token);
+      API.storeAuthToken(result.data.token);
       loginComplete(receivedUserProfile, );
       
     });
@@ -509,9 +525,9 @@ setMonthTargetsDialogSavingAllowed(false);
       return;
     }
 
-    axios({method:"GET",url : apiEndpoint + "/targets", headers:getAuthHeader()}).then( targetsResults => {
+    axios({method:"GET",url : apiEndpoint + "/targets", headers : API.getAuthHeader()}).then( targetsResults => {
       const targetsData = targetsResults.data.data; // data
-      axios({method:"GET",url : apiEndpoint + "/updates",params: {updatedMillisecondsAgo:lastUpdateRun+500}, headers: getAuthHeader()}).then( result => {
+      axios({method:"GET",url : apiEndpoint + "/updates",params: {updatedMillisecondsAgo:lastUpdateRun+500}, headers: API.getAuthHeader()}).then( result => {
         const changedEntries = result.data.data;
         let oneChanged = false;
         for (let index = 0; index < changedEntries.length; index++) {
@@ -570,9 +586,9 @@ setMonthTargetsDialogSavingAllowed(false);
 
   const tempInsertData = [];
   const fetchAllData = (pageSize,page) => {
-      axios({method:"GET",url : apiEndpoint + "/targets", headers:getAuthHeader()}).then( targetsResults => {
+      axios({method:"GET",url : apiEndpoint + "/targets", headers : API.getAuthHeader()}).then( targetsResults => {
         var targetsData = targetsResults.data.data; // data
-        axios({method:"GET",url : apiEndpoint + "/bills",params: {perPage:pageSize,page:page+1}, headers: getAuthHeader()}).then( result => {
+        axios({method:"GET",url : apiEndpoint + "/bills",params: {perPage:pageSize,page:page+1}, headers: API.getAuthHeader()}).then( result => {
           var data = result.data.data;
           var total = result.data.total;
 
@@ -598,30 +614,9 @@ setMonthTargetsDialogSavingAllowed(false);
     setDataEntries([]);
     setUserProfile(null);
     setLoggedIn(false);
-    storeAuthToken(null);
+    API.storeAuthToken(null);
   }
   
-  const getStoredAuthToken = () => {
-    return localStorage.getItem('id_token');
-  }
-  const getAuthHeader = () => {
-    return {'Authorization' : "Bearer " + getStoredAuthToken()};
-  }
-  const restoreAuthToken = () => {
-    var authToken = localStorage.getItem("id_token");
-    if(authToken)
-    {
-      return true;
-    }
-    return false;
-  }
-  const storeAuthToken = (token) =>
-  {
-    if(token)
-      localStorage.setItem("id_token", token);
-    else
-      localStorage.removeItem("id_token");
-  }
   const showLoginDialog = () => {
     loginDialogOpen(true);
     setLoginError("");
@@ -670,7 +665,7 @@ setMonthTargetsDialogSavingAllowed(false);
     ).then(result => {
       setSubmittingLogin(false);
       setLoginError("");
-      storeAuthToken(result.data.token);
+      API.storeAuthToken(result.data.token);
       restoreUserProfile(); 
     }).catch(error => {
       setSubmittingLogin(false);
@@ -693,7 +688,7 @@ setMonthTargetsDialogSavingAllowed(false);
     });
   }
   const restoreLoginState = () => {
-    if(restoreAuthToken())
+    if(API.restoreAuthToken())
     {
       restoreUserProfile();
     }
@@ -712,7 +707,7 @@ setMonthTargetsDialogSavingAllowed(false);
   }
   const getNewInviteCode = (inviteCodeElement) => {
 
-    axios({method:"GET",url:apiEndpoint + '/invites', headers:getAuthHeader()}
+    axios({method:"GET",url:apiEndpoint + '/invites', headers: API.getAuthHeader()}
     ).then(result => {
       setGeneratedInviteCode(result.data.code);
       inviteCodeElement.current.setCodeValue(result.data.code);
@@ -721,7 +716,7 @@ setMonthTargetsDialogSavingAllowed(false);
   }
 
   const storeInviteCode = (inviteCodeElement) => {
-    axios({method:"POST",url:apiEndpoint + '/invites', headers:getAuthHeader(), data:{code:inviteCodeElement.substr(0,9)}, }
+    axios({method:"POST",url:apiEndpoint + '/invites', headers: API.getAuthHeader(), data:{code:inviteCodeElement.substr(0,9)}, }
     ).then(result => {
       
       var receivedUserProfile = transformUserProfile(result.data);
@@ -732,7 +727,7 @@ setMonthTargetsDialogSavingAllowed(false);
   }
   
   const leaveGroup = (inviteCodeElement) => {
-    axios({method:"DELETE",url:apiEndpoint + '/invites', headers:getAuthHeader()} ).then(result => {
+    axios({method:"DELETE",url:apiEndpoint + '/invites', headers : API.getAuthHeader()} ).then(result => {
       
       var receivedUserProfile = transformUserProfile(result.data);
       setUserProfile (receivedUserProfile);
@@ -741,17 +736,21 @@ setMonthTargetsDialogSavingAllowed(false);
     });
     
   }
-
-
+  const [mainDrawerOpen, setMainDrawerOpen] = React.useState(false);
+  const mainDrawerRef = React.createRef();
+  const toggleDrawer = (value) => {
+    setMainDrawerOpen(true);
+  }
   return (
     <div className="App">
       <ThemeProvider theme={theme}>
       <AppBar className={classes.appBar}>
         <Toolbar>
 
-          {loggedIn && 
-            <MainDrawer />
-          }
+        <IconButton edge="start" className={classes.menuButton} color="inherit" aria-label="menu" onClick={(e) => toggleDrawer(true)}>
+            <MenuIcon />
+          </IconButton>
+          
         
           <Typography variant="h6" className={classes.title}>
             piggytracker
@@ -783,7 +782,9 @@ setMonthTargetsDialogSavingAllowed(false);
         </Toolbar>
       </AppBar>
       
-      
+      {loggedIn && 
+        <MainDrawer isOpen={mainDrawerOpen} onClosed={() => setMainDrawerOpen(false)} user={userProfile} accountValues={accountValues} />
+      }
       {/* User Profile Settings */}
       {userProfile && 
       <PDialog fullscreen={fullScreen} className={classes.removeRoundBorders} open={IsUserProfileSettingsDialogOpen} onClose={hideUserProfileSettingsDialog} aria-labelledby="form-dialog-add-entry-title">
@@ -811,7 +812,7 @@ setMonthTargetsDialogSavingAllowed(false);
         <Box>
             <TextField id={target.category}
               InputProps={{
-                startAdornment: <InputAdornment position="start"><SmallAvatar src={Config.getCategoryUrl(target.category)} /></InputAdornment>,
+                startAdornment: <InputAdornment position="start"><SmallAvatar src={API.getCategoryUrl(userProfile.groupId, target.category)} /></InputAdornment>,
               }}
               type="number"
               label={target.category}
@@ -882,7 +883,7 @@ setMonthTargetsDialogSavingAllowed(false);
            >
           {accountValues.categories.map( (category) =>
             <MenuItem value={category}>
-              <Chip label={category} variant="outlined" size="small" avatar={<Avatar src={Config.getCategoryUrl(category)} />} />
+              <Chip label={category} variant="outlined" size="small" avatar={<Avatar src={API.getCategoryUrl(userProfile.groupId, category)} />} />
               </MenuItem>
           )}
           </Select>
@@ -919,7 +920,7 @@ setMonthTargetsDialogSavingAllowed(false);
               >
               {accountValues.remunerators.map( (user) =>
                 <MenuItem value={user}>
-                  <Chip label={user} variant="outlined" size="small" avatar={<Avatar src={Config.getAvatarUrl(user)} />} />
+                  <Chip label={user} variant="outlined" size="small" avatar={<Avatar src={API.getRemuneratorUrl(userProfile.groupId, user)} />} />
                 </MenuItem>
               )}
               </Select>
@@ -1055,15 +1056,18 @@ setMonthTargetsDialogSavingAllowed(false);
       }   
       {loggedIn && currentView === "wastrel" && 
         
-        <div style={{ height: 'calc(90vh-56px)',paddingLeft: 20, paddingRight: 20,paddingTop: 20 }}>
-              <Grid container justify="center" spacing={2} className={classes.accountsGrid}>
+        <div style={{ height: 'calc(90vh-56px)',paddingTop: 10 }}>
+          <Container maxWidth="sx">
+              <Grid container style={{width:"auto", margin:"0 auto"}} spacing={1} className={classes.accountsGrid}>
           {accountValues.remuneratorSpendings.map((wastrel,i,all) =>
-              <Grid item>
-                <WastrelCard wastrel={wastrel} next={(all.length > (i+1))?all[i+1]:undefined} item />
+              <Grid item xs={12}>
+                <WastrelCard wastrel={wastrel} user={userProfile} next={(all.length > (i+1))?all[i+1]:undefined} item />
               </Grid>
               
           )}
           </Grid>
+          </Container>
+
         </div>
       } 
       {loggedIn && (currentView === "entries") && 
@@ -1105,7 +1109,7 @@ setMonthTargetsDialogSavingAllowed(false);
               <Grid container justify="center" spacing={1} className={classes.accountsGrid}>
 
                     {accountValues.categoryMonths.map((catMonth) => 
-                <Grid key={catMonth.month} item xs>
+                <Grid key={'month-'+ catMonth.tid} item xs>
                   <MonthCard monthCategories={catMonth} accounts={accountValues} menuToggle={(e,tid) =>{catMonthOptionsMenuToggle(e,tid);}} />
                 </Grid>
                     )}
@@ -1119,6 +1123,7 @@ setMonthTargetsDialogSavingAllowed(false);
   onChange={(event, newValue) => {
     setValue(newValue);
     setCurrentView(views[newValue]);
+    
   }}
   showLabels
   className={classes.bottomNavigation}
