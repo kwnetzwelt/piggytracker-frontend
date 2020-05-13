@@ -1057,7 +1057,7 @@ setMonthTargetsDialogSavingAllowed(false);
       {loggedIn && currentView === "wastrel" && 
         
         <div style={{ height: 'calc(90vh-56px)',paddingTop: 10 }}>
-          <Container maxWidth="sx">
+          <Container maxWidth="sm">
               <Grid container style={{width:"auto", margin:"0 auto"}} spacing={1} className={classes.accountsGrid}>
           {accountValues.remuneratorSpendings.map((wastrel,i,all) =>
               <Grid item xs={12}>
