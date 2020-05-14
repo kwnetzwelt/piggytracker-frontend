@@ -7,13 +7,12 @@ import ChevronLeftIcon from '@material-ui/icons/ChevronLeft';
 import ChevronRightIcon from '@material-ui/icons/ChevronRight';
 import MoreVertIcon from '@material-ui/icons/MoreVert';
 import ReloadIcon from '@material-ui/icons/RefreshTwoTone';
-import CloseIcon from '@material-ui/icons/Close';
 
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemText from '@material-ui/core/ListItemText';
 import ListSubheader from '@material-ui/core/ListSubheader';
-import { IconButton,  Drawer, Divider, Typography, useTheme, ListItemAvatar, Avatar, ListItemSecondaryAction, Box, Dialog, DialogContent, DialogTitle, DialogActions, MenuItem, Menu, Snackbar, Button, Slide } from '@material-ui/core';
+import { IconButton,  Drawer, Divider, Typography, useTheme, ListItemAvatar, Avatar, ListItemSecondaryAction, MenuItem, Menu, Snackbar } from '@material-ui/core';
 import API from './API';
 import Axios from 'axios';
 import MuiAlert from '@material-ui/lab/Alert';
@@ -56,13 +55,6 @@ export default function MainDrawer(props) {
       props.onClosed();
     }
   }
-  const onActionClicked =  (event, target) => {
-      event.preventDefault();
-      if(target == "category" && props.categoryIconsClicked)
-      {
-        props.categoryIconsClicked();
-      }
-  }
   const beginEditingRemuneratorEntry = (e,item) => {
     setState({...state, elementType:"Remunerator", elementKey: item, elementMenuOpen : e.target});
   }
@@ -81,15 +73,13 @@ export default function MainDrawer(props) {
       console.log(JSON.stringify(result));
     }).catch((e) => {
       setState({...state, uploadInfo: "error", uploadInfoText:"Upload failed!",elementMenuOpen: null});
-    }) .finally(() =>{
+    }).finally(() =>{
       
     });
 
 
   }
-  const handleInfoRefresh = (e) => {
-    window.location.reload(false);
-  }
+  
   const handleInfoClose = (e, reason) => {
     if (reason === 'clickaway') {
       return;

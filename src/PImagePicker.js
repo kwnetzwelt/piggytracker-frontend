@@ -1,7 +1,7 @@
 import React from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import { ImagePicker as ReactImagePicker} from 'react-file-picker';
-import { InputBase, Avatar } from '@material-ui/core';
+import { Avatar } from '@material-ui/core';
  /**
  * 
  * @param { deleteClicked, src, alt } props 
@@ -35,10 +35,6 @@ export default function PImagePicker (props) {
       }));
       const classes = useStyles();
 
-      const onDeleteClicked = () => {
-        if(props.deleteClicked)
-            props.deleteClicked();
-      }
 
 return (
            

@@ -39,6 +39,5 @@ const API =class {
         else
           return fullname.charAt(0).toUpperCase();
       }
-    
 }
 export default API;
