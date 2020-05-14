@@ -53,8 +53,7 @@ import InviteCode from './InviteCode';
 import PopupState, { bindTrigger, bindMenu } from 'material-ui-popup-state';
 import WastrelCard from './WastrelCard';
 import MainDrawer from './MainDrawer';
-import PImagePicker from './PImagePicker';
-//import PImagePicker from './PImagePicker';
+import ReleaseNotes from './ReleaseNotes';
 
 const theme = createMuiTheme({
   
@@ -214,6 +213,11 @@ function App() {
     return () => {
     }
   },[]);
+
+  const [state, setState] = React.useState({
+    releaseNotes : false,
+
+  });
 
   /* -- bottom navigation --*/
   
@@ -442,17 +446,7 @@ setMonthTargetsDialogSavingAllowed(false);
     return parseFloat( parseInt(v * 100)) / 100;
   }
 
-  /* -- image upload -- */
-  const [uploadDialogIsOpen, setUploadDialogIsOpen] = useState(true);
-  const [uploadDialogTarget, setUploadDialogTarget] = useState(null);
-  const showUploadDialog = (target) => {
-    setUploadDialogTarget(target);
-    setUploadDialogIsOpen(true);
-  }
-  const hideUploadDialog = () => {
-    setUploadDialogIsOpen(false);
-  }
-
+  
   /* -- auth --*/
   //const loginUsername = useRef(null);
   //const loginPassword = useRef(null);
@@ -465,7 +459,6 @@ setMonthTargetsDialogSavingAllowed(false);
   const [IsLoginDialogOpen, loginDialogOpen] = useState(false); // hidden dialogs
 
   const [loggedIn, setLoggedIn] = useState(false);
-  const loggedInRef = React.useRef(loggedIn);
   const views = ["entries","accounts","wastrel"];
   const [currentView, setCurrentView] = useState("entries");
   const avatarDisplay = createRef();
@@ -512,7 +505,15 @@ setMonthTargetsDialogSavingAllowed(false);
     hideLoginDialog();
     setUserProfile (receivedUserProfile);
     setLoggedIn(true);
-    fetchAllData(250,0);
+    API.getReleaseNotes().then((response) => {
+      
+      setState({...state, releaseNotes: response.data});
+      
+    }).catch((e) => {
+      console.log(JSON.stringify(e));
+    }).finally(() =>{
+      fetchAllData(250,0);
+    });
   }
 
   const updateRate = 2500;
@@ -584,7 +585,6 @@ setMonthTargetsDialogSavingAllowed(false);
     setTimeout(runDataUpdate,updateRate);
   }
 
-  const tempInsertData = [];
   const fetchAllData = (pageSize,page) => {
       axios({method:"GET",url : apiEndpoint + "/targets", headers : API.getAuthHeader()}).then( targetsResults => {
         var targetsData = targetsResults.data.data; // data
@@ -699,9 +699,7 @@ setMonthTargetsDialogSavingAllowed(false);
   const inviteCodeElement = React.useRef();
   const [generatedInviteCode, setGeneratedInviteCode] = useState("");
   const [IsUserProfileSettingsDialogOpen, setIsUserProfileSettingsDialogOpen] = useState(false);
-  const submitUserProfileDialog = () => {
-    setIsUserProfileSettingsDialogOpen(false);
-  }
+  
   const hideUserProfileSettingsDialog = () => {
     setIsUserProfileSettingsDialogOpen(false);
   }
@@ -737,7 +735,7 @@ setMonthTargetsDialogSavingAllowed(false);
     
   }
   const [mainDrawerOpen, setMainDrawerOpen] = React.useState(false);
-  const mainDrawerRef = React.createRef();
+  
   const toggleDrawer = (value) => {
     setMainDrawerOpen(true);
   }
@@ -768,7 +766,7 @@ setMonthTargetsDialogSavingAllowed(false);
                   src={userProfile.avatarUrl}
                   style={{cursor:"pointer"}}
                   >{userProfile.initials}</Avatar>
-                <Menu {...bindMenu(popupState)} anchorOrigin={{horizontal:"right", vertical:"left"}}>
+                <Menu {...bindMenu(popupState)} anchorOrigin={{horizontal:"right", vertical:"top"}}>
                   <MenuItem id="avatar-context-menu-fullname">{userProfile.fullname}</MenuItem>
                   <MenuItem id="avatar-context-menu-settings" onClick={hideAvatarContextMenu}>Settings</MenuItem>
                   <MenuItem onClick={hideAvatarContextMenu} id="avatar-context-menu-logout">Logout</MenuItem>
@@ -882,7 +880,7 @@ setMonthTargetsDialogSavingAllowed(false);
            
            >
           {accountValues.categories.map( (category) =>
-            <MenuItem value={category}>
+            <MenuItem value={category} key={category}>
               <Chip label={category} variant="outlined" size="small" avatar={<Avatar src={API.getCategoryUrl(userProfile.groupId, category)} />} />
               </MenuItem>
           )}
@@ -919,7 +917,7 @@ setMonthTargetsDialogSavingAllowed(false);
               
               >
               {accountValues.remunerators.map( (user) =>
-                <MenuItem value={user}>
+                <MenuItem value={user} key={user}>
                   <Chip label={user} variant="outlined" size="small" avatar={<Avatar src={API.getRemuneratorUrl(userProfile.groupId, user)} />} />
                 </MenuItem>
               )}
@@ -1116,7 +1114,7 @@ setMonthTargetsDialogSavingAllowed(false);
           </Grid>
         </div>
       }
-      
+      {loggedIn && <ReleaseNotes releaseNotes={state.releaseNotes} />}
       
 <BottomNavigation
   value={value}

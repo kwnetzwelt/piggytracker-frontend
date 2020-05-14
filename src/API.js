@@ -1,4 +1,5 @@
 import Config from './Config';
+import axios from 'axios';
 
 const API =class {
     static apiEndpoint = Config.apiEndpoint + Config.apiEndpointPrefixRoute;
@@ -39,6 +40,8 @@ const API =class {
         else
           return fullname.charAt(0).toUpperCase();
       }
-    
+    static getReleaseNotes = () => {
+      return axios({method:"GET", url:Config.staticAssets + '/releaseNotes.json'});
+    }
 }
 export default API;

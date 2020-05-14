@@ -64,7 +64,7 @@ export default function InviteCode(props) {
   }));
 
   const isInGroup = () => {
-    return props.user.groupId != props.user.id;
+    return props.user.groupId !== props.user.id;
   };
   
 
