@@ -1,34 +1,36 @@
 import React, { useEffect } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 
-import API from './API';
 import GitHubIcon from '@material-ui/icons/GitHub';
-import { DialogActions, Dialog, Typography, useTheme, useMediaQuery, DialogContent, DialogTitle, Button, FormControlLabel, Checkbox, IconButton, ListItem, List } from '@material-ui/core';
+import { DialogActions, Dialog, Typography, useTheme, useMediaQuery, DialogContent, DialogTitle, Button, FormControlLabel, Checkbox, IconButton, ListItem, List, Divider } from '@material-ui/core';
 
-
+import releaseNotesContent from './ReleaseNotesContent';
 /**
  * 
  * @param {releaseNotes} props 
  */
 export default function ReleaseNotes(props) {
     
-  useEffect(
-    () => {
-        console.log(JSON.stringify( props));
-        if(props.releaseNotes.versions !== undefined && props.releaseNotes.versions[0].version !== getLastReadVersion())
-        {
-            setState({ ...state, releaseNotes: props.releaseNotes, dialogOpen: true});
-        }else
-        {
-            setState({ ...state, releaseNotes: props.releaseNotes, dialogOpen: false});
-        }
-    }
-  ,[props]);
-
     const [state, setState] = React.useState({
         dialogOpen: false,
-        releaseNotes: props.releaseNotes
+        releaseNotes: {}
     });
+
+    useEffect(() => {
+        
+        if(releaseNotesContent.versions !== undefined && releaseNotesContent.versions[0].version !== getLastReadVersion())
+        {
+            setState({ ...state, releaseNotes: releaseNotesContent, dialogOpen: true});
+        }else
+        {
+            setState({ ...state, releaseNotes: releaseNotesContent, dialogOpen: false});
+        }
+
+        return () => {
+        }
+      },[]);
+    
+
    
     
     const markRead = () => {
@@ -80,7 +82,8 @@ export default function ReleaseNotes(props) {
         {state.releaseNotes.versions !== undefined && state.releaseNotes.versions.map(version => 
             <ListItem key={version.version} style={{display:"block",paddingLeft:0,paddingRight:0}}>
                 <Typography variant="h6" component="div">{version.version}</Typography>
-                <Typography variant="body1" component="pre">{version.content}</Typography>
+                <Typography variant="body1" dangerouslySetInnerHTML={{__html: version.content}}></Typography>
+                <Divider style={{marginTop:5,marginBottom:5}} />
             </ListItem>
         )} 
         </List>

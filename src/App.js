@@ -214,10 +214,6 @@ function App() {
     }
   },[]);
 
-  const [state, setState] = React.useState({
-    releaseNotes : false,
-
-  });
 
   /* -- bottom navigation --*/
   
@@ -505,15 +501,9 @@ setMonthTargetsDialogSavingAllowed(false);
     hideLoginDialog();
     setUserProfile (receivedUserProfile);
     setLoggedIn(true);
-    API.getReleaseNotes().then((response) => {
-      
-      setState({...state, releaseNotes: response.data});
-      
-    }).catch((e) => {
-      console.log(JSON.stringify(e));
-    }).finally(() =>{
-      fetchAllData(250,0);
-    });
+    
+    fetchAllData(250,0);
+    
   }
 
   const updateRate = 2500;
@@ -1114,7 +1104,7 @@ setMonthTargetsDialogSavingAllowed(false);
           </Grid>
         </div>
       }
-      {loggedIn && <ReleaseNotes releaseNotes={state.releaseNotes} />}
+      {loggedIn && <ReleaseNotes />}
       
 <BottomNavigation
   value={value}
