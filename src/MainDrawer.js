@@ -7,12 +7,14 @@ import ChevronLeftIcon from '@material-ui/icons/ChevronLeft';
 import ChevronRightIcon from '@material-ui/icons/ChevronRight';
 import MoreVertIcon from '@material-ui/icons/MoreVert';
 import ReloadIcon from '@material-ui/icons/RefreshTwoTone';
+import CloudUploadIcon from '@material-ui/icons/CloudUpload';
+import CloudDownloadIcon from '@material-ui/icons/CloudDownload';
 
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemText from '@material-ui/core/ListItemText';
 import ListSubheader from '@material-ui/core/ListSubheader';
-import { IconButton,  Drawer, Divider, Typography, useTheme, ListItemAvatar, Avatar, ListItemSecondaryAction, MenuItem, Menu, Snackbar } from '@material-ui/core';
+import { IconButton,  Drawer, Divider, Typography, useTheme, ListItemAvatar, Avatar, ListItemSecondaryAction, MenuItem, Menu, Snackbar, Button } from '@material-ui/core';
 import API from './API';
 import Axios from 'axios';
 import MuiAlert from '@material-ui/lab/Alert';
@@ -98,6 +100,12 @@ export default function MainDrawer(props) {
     vspacer: {
       flexGrow: 1
     },
+    uploadButton: {
+      margin: theme.spacing(1),
+    },
+    downloadButton: {
+      margin: theme.spacing(1),
+    },
     versionString: {
       textAlign:"center"
     },
@@ -144,6 +152,7 @@ export default function MainDrawer(props) {
               <IconButton onClick={(e) => window.location.reload()}>
                 <ReloadIcon />
               </IconButton>
+              
               <div style={{flexGrow:1}}></div>
               <IconButton onClick={toggleDrawer(false)}>
                 {theme.direction === 'ltr' ? <ChevronLeftIcon /> : <ChevronRightIcon />}
@@ -203,6 +212,25 @@ export default function MainDrawer(props) {
                 </li>
             </List>
             <Typography display="block" className={classes.vspacer}></Typography>
+            <div display="flex">
+            <Button 
+              variant="contained"
+              color="default"
+              size="small"
+              className={classes.uploadButton}
+              startIcon={<CloudUploadIcon />}>
+              Import
+            </Button>
+
+            <Button
+              variant="contained"
+              color="default"
+              size="small"
+              className={classes.downloadButton}
+              startIcon={<CloudDownloadIcon />}>
+              Export
+            </Button>
+            </div>
             <Typography variant="overline" display="block" gutterBottom className={classes.versionString}>
             version: {process.env.REACT_APP_CURRENT_GIT_SHA}
             </Typography>
