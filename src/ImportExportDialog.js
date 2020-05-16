@@ -1,14 +1,11 @@
 import React from 'react';
 
-import { FilePicker as ReactImagePicker} from 'react-file-picker';
 import { makeStyles } from '@material-ui/core/styles';
 
-import ChevronLeftIcon from '@material-ui/icons/ChevronLeft';
-import ChevronRightIcon from '@material-ui/icons/ChevronRight';
-import MoreVertIcon from '@material-ui/icons/MoreVert';
 import CloseIcon from '@material-ui/icons/Close';
 import CloudUploadIcon from '@material-ui/icons/CloudUpload';
 import CloudDownloadIcon from '@material-ui/icons/CloudDownload';
+import { FilePicker } from 'react-file-picker';
 
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
@@ -66,8 +63,21 @@ export default function ImportExportDialog(props) {
             
         }
         
-        const handleImport = () => {
+        const handleImport = (FileObject) => {
+            var data = new FormData();
+            data.append('csv', FileObject);
+            data.append('clear', state.deleteExistingOnImport);
+
+            Axios({method:"POST",url : API.apiEndpoint + "/bills/import", headers: {...API.getAuthHeader(),
+                'content-type': 'multipart/form-data'}, data:data}).then( result => {
+        
+                setState({...state, uploadInfo: "success", uploadInfoText:"Upload succeeded!", elementMenuOpen: null});
+                console.log(JSON.stringify(result));
+            }).catch((e) => {
+                setState({...state, uploadInfo: "error", uploadInfoText:"Upload failed!",elementMenuOpen: null});
+            }).finally(() =>{
             
+            });
         }
 
         const handleExport = () => {
@@ -93,7 +103,7 @@ export default function ImportExportDialog(props) {
         const uploadImage = () => {
             Axios({method:"POST",url : API.apiEndpoint + "/images/" + state.elementType.toLowerCase(), headers: API.getAuthHeader()}).then( result => {
                 
-                setState({...state, uploadInfo: "success", uploadInfoText:"Upload succeeded!", elementMenuOpen: null});
+                setState({...state, info: "success", infoText:"Upload succeeded!", elementMenuOpen: null});
                 console.log(JSON.stringify(result));
             }).catch((e) => {
                 setState({...state, uploadInfo: "error", uploadInfoText:"Upload failed!",elementMenuOpen: null});
@@ -164,7 +174,7 @@ export default function ImportExportDialog(props) {
       <DialogContentText>
           <Typography variant="h6" style={{display:"block"}} component="span">Import</Typography>
             You can import Entries from an existing .csv-file, which you can upload. Please make sure the file is formatted using comma-delimiter. In general the format should look like follows:
-            <Typography variant="subtitle2" component="span" className={classes.source}>date,amount,category,remunerator,info<br />
+            <Typography variant="subtitle2" component="span" className={classes.source}>date,value,category,remunerator,info<br />
 2020-05-16T12:19:27.938Z,4.99,children,Max Mustermann,Flummies</Typography>
             <Typography component="span" className={state.deleteExistingOnImport ? classes.importantNoteSelected : classes.importantNote}> If you select "Delete existing", all entries associated with your account will be <u>replaced</u> by the entries you provide with your .csv-file. </Typography>
       </DialogContentText>
@@ -173,16 +183,22 @@ export default function ImportExportDialog(props) {
         control={<Checkbox checked={state.deleteExistingOnImport} onChange={handleDeleteExistingOnImport} name="checkedDeleteExistingOnImport" />}
         label="Delete existing"
         />
-      <Button onClick={handleImport}  autoFocus variant="contained" id="btn-import"
+        <FilePicker
+              extensions={['csv']}
+              onChange={FileObject => {handleImport(FileObject)}}
+              >
+                  <Button   autoFocus variant="contained" id="btn-import"
               startIcon={<CloudUploadIcon />}>
         Import
       </Button>
+      </FilePicker>
+      
     </DialogActions>
       <Divider />
       <DialogContentText>
           <Typography variant="h6" style={{display:"block"}} component="span">Export</Typography>
             You can export all Entries associated with your account as a .csv-file. Targets and Icons are not exported. The resulting format will look like this:
-            <Typography variant="subtitle2" component="span" className={classes.source}>date,amount,category,remunerator,info<br />
+            <Typography variant="subtitle2" component="span" className={classes.source}>date,value,category,remunerator,info<br />
 2020-05-16T12:19:27.938Z,4.99,children,Max Mustermann,Flummies</Typography>
      </DialogContentText>
     <DialogActions>
