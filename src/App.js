@@ -39,7 +39,7 @@ import MuiVirtualizedTable from 'mui-virtualized-table';
 import {AutoSizer} from 'react-virtualized';
 import Config from './Config.js';
 import API from './API.js';
-
+import ImportExportDialog from './ImportExportDialog.js';
 import {Accounts, MonthCategories} from './Accounts.js';
 import Grid from '@material-ui/core/Grid';
 import FormControl from '@material-ui/core/FormControl';
@@ -215,6 +215,9 @@ function App() {
   },[]);
 
 
+  const [state, setState] = React.useState({
+    importExportDialogOpen : false
+  });
   /* -- bottom navigation --*/
   
   const [value, setValue] = React.useState('entries');
@@ -624,6 +627,9 @@ setMonthTargetsDialogSavingAllowed(false);
     else if(event.currentTarget.id === "avatar-context-menu-logout")
     {
       logout();
+    }else if (event.currentTarget.id === "avatar-context-menu-importexport")
+    {
+      setState({...state, importExportDialogOpen : true});
     }
   }
   const getUserInitials = (fullname) => {
@@ -759,6 +765,7 @@ setMonthTargetsDialogSavingAllowed(false);
                 <Menu {...bindMenu(popupState)} anchorOrigin={{horizontal:"right", vertical:"top"}}>
                   <MenuItem id="avatar-context-menu-fullname">{userProfile.fullname}</MenuItem>
                   <MenuItem id="avatar-context-menu-settings" onClick={hideAvatarContextMenu}>Settings</MenuItem>
+                  <MenuItem id="avatar-context-menu-importexport" onClick={hideAvatarContextMenu}>Import/Export</MenuItem>
                   <MenuItem onClick={hideAvatarContextMenu} id="avatar-context-menu-logout">Logout</MenuItem>
 
                   
@@ -773,6 +780,10 @@ setMonthTargetsDialogSavingAllowed(false);
       {loggedIn && 
         <MainDrawer isOpen={mainDrawerOpen} onClosed={() => setMainDrawerOpen(false)} user={userProfile} accountValues={accountValues} />
       }
+
+      {/* Import Export Dialog */}
+      <ImportExportDialog open={state.importExportDialogOpen} onClosed={() => setState({...state, importExportDialogOpen: false })} user={userProfile}></ImportExportDialog>
+
       {/* User Profile Settings */}
       {userProfile && 
       <PDialog fullscreen={fullScreen} className={classes.removeRoundBorders} open={IsUserProfileSettingsDialogOpen} onClose={hideUserProfileSettingsDialog} aria-labelledby="form-dialog-add-entry-title">

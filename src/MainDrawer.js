@@ -7,8 +7,6 @@ import ChevronLeftIcon from '@material-ui/icons/ChevronLeft';
 import ChevronRightIcon from '@material-ui/icons/ChevronRight';
 import MoreVertIcon from '@material-ui/icons/MoreVert';
 import ReloadIcon from '@material-ui/icons/RefreshTwoTone';
-import CloudUploadIcon from '@material-ui/icons/CloudUpload';
-import CloudDownloadIcon from '@material-ui/icons/CloudDownload';
 
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
@@ -212,25 +210,6 @@ export default function MainDrawer(props) {
                 </li>
             </List>
             <Typography display="block" className={classes.vspacer}></Typography>
-            <div display="flex">
-            <Button 
-              variant="contained"
-              color="default"
-              size="small"
-              className={classes.uploadButton}
-              startIcon={<CloudUploadIcon />}>
-              Import
-            </Button>
-
-            <Button
-              variant="contained"
-              color="default"
-              size="small"
-              className={classes.downloadButton}
-              startIcon={<CloudDownloadIcon />}>
-              Export
-            </Button>
-            </div>
             <Typography variant="overline" display="block" gutterBottom className={classes.versionString}>
             version: {process.env.REACT_APP_CURRENT_GIT_SHA}
             </Typography>
