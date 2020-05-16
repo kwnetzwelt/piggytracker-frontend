@@ -12,7 +12,7 @@ import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemText from '@material-ui/core/ListItemText';
 import ListSubheader from '@material-ui/core/ListSubheader';
-import { IconButton,  Drawer, Divider, Typography, useTheme, ListItemAvatar, Avatar, ListItemSecondaryAction, MenuItem, Menu, Snackbar } from '@material-ui/core';
+import { IconButton,  Drawer, Divider, Typography, useTheme, ListItemAvatar, Avatar, ListItemSecondaryAction, MenuItem, Menu, Snackbar, Button } from '@material-ui/core';
 import API from './API';
 import Axios from 'axios';
 import MuiAlert from '@material-ui/lab/Alert';
@@ -98,6 +98,12 @@ export default function MainDrawer(props) {
     vspacer: {
       flexGrow: 1
     },
+    uploadButton: {
+      margin: theme.spacing(1),
+    },
+    downloadButton: {
+      margin: theme.spacing(1),
+    },
     versionString: {
       textAlign:"center"
     },
@@ -144,6 +150,7 @@ export default function MainDrawer(props) {
               <IconButton onClick={(e) => window.location.reload()}>
                 <ReloadIcon />
               </IconButton>
+              
               <div style={{flexGrow:1}}></div>
               <IconButton onClick={toggleDrawer(false)}>
                 {theme.direction === 'ltr' ? <ChevronLeftIcon /> : <ChevronRightIcon />}
