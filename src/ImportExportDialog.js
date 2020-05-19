@@ -165,7 +165,7 @@ export default function ImportExportDialog(props) {
             onClose={handleClose}
             aria-labelledby="responsive-dialog-title"
             >
-    <DialogTitle id="responsive-dialog-title">{"Use Google's location service?"}
+    <DialogTitle id="responsive-dialog-title">{"Import / Export"}
     <IconButton aria-label="close" className={classes.dialogCloseButton} onClick={handleClose}>
             <CloseIcon />
           </IconButton>
