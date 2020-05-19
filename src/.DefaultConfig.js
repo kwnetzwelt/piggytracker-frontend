@@ -1,5 +1,7 @@
 const Config =class {
 
+    static googleClientId = "12345672343-pleaseinsertyourvaluehere.apps.googleusercontent.com";
+
     /** The API Endpoint (backend) to connect to */
     static apiEndpoint = "https://api.piggytracker.org";
     /** For almost all calls we will use this as a prefix route */
