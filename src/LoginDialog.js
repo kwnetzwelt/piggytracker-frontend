@@ -196,7 +196,7 @@ export default function LoginDialog(props) {
                 
                 onSuccess={onSignIn}
                 onFailure={onSignInFailed}
-                
+                isSignedIn={true}
                 cookiePolicy={'single_host_origin'}
                 render={renderProps => (
                     <IconButton className={classes.googleButton} onClick={renderProps.onClick} disabled={renderProps.disabled} >

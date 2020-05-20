@@ -595,6 +595,7 @@ setMonthTargetsDialogSavingAllowed(false);
     setUserProfile(null);
     setLoggedIn(false);
     API.storeAuthToken(null);
+    window.location.reload();
   }
   
   const showLoginDialog = () => {
