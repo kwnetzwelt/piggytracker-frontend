@@ -13,6 +13,7 @@ build:
   script:
     - npm ci
     - cp src/.DefaultConfig.js src/Config.js
+    - sed -i "s/(GOOGLE_CLIENT_ID)/$GOOGLE_CLIENT_ID/g" src/Config.js
     - CI=false REACT_APP_CURRENT_GIT_SHA=$CI_COMMIT_SHORT_SHA npm run build
   artifacts:
     paths:
