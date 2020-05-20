@@ -20,10 +20,10 @@ export default function ReleaseNotes(props) {
         
         if(releaseNotesContent.versions !== undefined && releaseNotesContent.versions[0].version !== getLastReadVersion())
         {
-            setState({ ...state, releaseNotes: releaseNotesContent, dialogOpen: true});
+          setState(s=> ({...s, releaseNotes: releaseNotesContent, dialogOpen: true}));
         }else
         {
-            setState({ ...state, releaseNotes: releaseNotesContent, dialogOpen: false});
+          setState(s=> ({...s, releaseNotes: releaseNotesContent, dialogOpen: false}));
         }
 
         return () => {

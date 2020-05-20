@@ -1,6 +1,6 @@
 import React, { useState, useEffect, createRef} from 'react';
 import { makeStyles } from '@material-ui/core/styles';
-import GoogleLogin from 'react-google-login';
+
 import CircularProgress from '@material-ui/core/CircularProgress';
 import Fab from '@material-ui/core/Fab';
 import AddIcon from '@material-ui/icons/Add';
@@ -54,6 +54,7 @@ import PopupState, { bindTrigger, bindMenu } from 'material-ui-popup-state';
 import WastrelCard from './WastrelCard';
 import MainDrawer from './MainDrawer';
 import ReleaseNotes from './ReleaseNotes';
+import LoginDialog from './LoginDialog';
 
 const theme = createMuiTheme({
   
@@ -160,10 +161,22 @@ const useStyles = makeStyles((theme) => ({
     backgroundColor:blueGrey[50]
   },
   appBar: {
-    position: 'sticky',
+    position: 'fixed',
     backgroundColor: theme.primary
   },
   table : {
+    marginTop:"56px",
+    marginBottom:"60px"
+  },
+  accountsGrid : {
+    flexGrow: 1,
+    marginTop:"56px",
+    marginBottom:"60px"
+  },
+  wastrelContainer: {
+
+    marginTop:"66px",
+    marginBottom:"60px"
   },
   
   fab: {
@@ -173,10 +186,6 @@ const useStyles = makeStyles((theme) => ({
   },
   title: {
     flexGrow: 1,
-  },
-  accountsGrid : {
-    flexGrow: 1,
-    marginBottom:64
   },
   critical: {
     color: red[400],
@@ -447,13 +456,7 @@ setMonthTargetsDialogSavingAllowed(false);
 
   
   /* -- auth --*/
-  //const loginUsername = useRef(null);
-  //const loginPassword = useRef(null);
-  const loginUsernameInput = createRef();
-  const loginPasswordInput = createRef();
-  const [loginUsername,setLoginUsername] = useState({value:"JohnDoe",error:null});
-  const [loginPassword,setLoginPassword] = useState({value:"123456",error:null});
-
+  
   const [userProfile,setUserProfile] = useState({groupName:""});
   const [IsLoginDialogOpen, loginDialogOpen] = useState(false); // hidden dialogs
 
@@ -481,28 +484,12 @@ setMonthTargetsDialogSavingAllowed(false);
   }
 
 
-  const onSignIn = (googleUser) => {
-    const profile = googleUser.getBasicProfile();
-    console.log('ID: ' + profile.getId()); // Do not send to your backend! Use an ID token instead.
-    console.log('Name: ' + profile.getName());
-    console.log('Image URL: ' + profile.getImageUrl());
-    console.log('Email: ' + profile.getEmail()); // This is null if the 'email' scope is not present.
 
-    const id_token = googleUser.getAuthResponse().id_token;
-    axios({method: "POST", url: Config.apiEndpoint + "/google/tokensignin", data:{idtoken:id_token,avatarUrl:profile.getImageUrl()}, headers:{
-      contentType: 'application/x-www-form-urlencoded'
-    }}).then(result =>{
-      var receivedUserProfile = transformUserProfile(result.data.userProfile);
-      
-      API.storeAuthToken(result.data.token);
-      loginComplete(receivedUserProfile, );
-      
-    });
-  }
+  const loginComplete = (receivedUserProfile) => {
 
-  const loginComplete = (receivedUserProfile, token) => {
+    const profile = transformUserProfile(receivedUserProfile);
     hideLoginDialog();
-    setUserProfile (receivedUserProfile);
+    setUserProfile (profile);
     setLoggedIn(true);
     
     fetchAllData(250,0);
@@ -612,9 +599,6 @@ setMonthTargetsDialogSavingAllowed(false);
   
   const showLoginDialog = () => {
     loginDialogOpen(true);
-    setLoginError("");
-    setLoginUsername({value:loginUsername,error:null});
-    setLoginPassword({value:loginPassword,error:null});
   }
   const hideLoginDialog = () => {
     loginDialogOpen(false);
@@ -645,44 +629,7 @@ setMonthTargetsDialogSavingAllowed(false);
     profileData.initials = getUserInitials(profileData.fullname);
     return profileData;
   }
-  const [submittingLogin, setSubmittingLogin] = useState(false);
-  const [loginError, setLoginError] = useState("");
-  const submitLoginDialog = (e) => {
-    setSubmittingLogin(true);
-    setLoginError("");
-    e.preventDefault();
-    setLoginUsername({value:loginUsername.value,error:null});
-    setLoginPassword({value:loginPassword.value,error:null});
-    var body = {
-      username: loginUsername.value,
-      password: loginPassword.value
-    };
-    axios.post(apiEndpoint + '/login',body
-    ).then(result => {
-      setSubmittingLogin(false);
-      setLoginError("");
-      API.storeAuthToken(result.data.token);
-      restoreUserProfile(); 
-    }).catch(error => {
-      setSubmittingLogin(false);
-      console.error(error);
-      if(error.response)
-      {
-        if(error.response.data.message === "user not found")
-        {
-          setLoginError("Invalid Username");
-          setLoginUsername({value:loginUsername.value,error:"Invalid Username"});
-        }else
-        {
-          setLoginError("Invalid Password");
-          setLoginPassword({value:loginPassword.value,error:"Invalid Password"});
-        }
-      }else
-      {
-        setLoginError(error.message);
-      }
-    });
-  }
+  
   const restoreLoginState = () => {
     if(API.restoreAuthToken())
     {
@@ -978,64 +925,9 @@ setMonthTargetsDialogSavingAllowed(false);
       </PDialog>
 
       {/* LOGIN DIALOG */}
-      <PDialog fullscreen={fullScreen} className={classes.removeRoundBorders} open={IsLoginDialogOpen} onClose={hideLoginDialog} aria-labelledby="form-dialog-title">
-      <GoogleLogin
-        clientId="483535558510-vhcru5umuiitnjiknlnc8g62s4v6p876.apps.googleusercontent.com"
-        buttonText="Login"
-        onSuccess={onSignIn}
-        onFailure={onSignIn}
-        isSignedIn={true}
-        cookiePolicy={'single_host_origin'}
-      />
-    
-      <form className={classes.root} noValidate>
-    
-      <DialogTitle id="form-dialog-title">Login</DialogTitle>
-      <DialogContent>
-        <DialogContentText>
-          
-        </DialogContentText>
-        
-        
-        <TextField
-          id="login-username"
-          label="Username"
-          type="text"
-          autoComplete="current-username"
-          onChange={(e) =>{setLoginUsername({value:e.target.value,error:null});}}
-          ref={loginUsernameInput}
-          error={loginUsername.error}
-          helperText={loginUsername.error}
-          fullWidth
-        />
-        <TextField
-          id="login-password"
-          label="Password"
-          type="password"
-          autoComplete="current-password"
-          onChange={(e) => {setLoginPassword({value:e.target.value,error:null});}}
-          ref={loginPasswordInput}
-          error={loginPassword.error}
-          helperText={loginPassword.error}
-          fullWidth
-        />
-      </DialogContent>
-      <DialogActions>
-        <Typography color="error" style={{fontWeight:"bold",flexGrow:1,paddingLeft:theme.spacing(2)}}>
-          {loginError}
-        </Typography>
-        {submittingLogin && 
-          <CircularProgress  size={12}></CircularProgress>
-        }
-        <PButton onClick={hideLoginDialog} color="primary">
-          Cancel
-        </PButton>
-        <PButton disabled={submittingLogin} variant="contained" onClick={submitLoginDialog} color="primary">
-        Login
-        </PButton>
-      </DialogActions>
-      </form>
-      </PDialog>
+      <LoginDialog open={IsLoginDialogOpen} loginComplete={(p) => loginComplete(p)} />
+      
+      
       {!loggedIn &&
         <Container style={{ height: 'calc(70vh)', lineHeight:'calc(70vh)' }}>
         
@@ -1055,7 +947,7 @@ setMonthTargetsDialogSavingAllowed(false);
       }   
       {loggedIn && currentView === "wastrel" && 
         
-        <div style={{ height: 'calc(90vh-56px)',paddingTop: 10 }}>
+        <div style={{ height: 'calc(90vh-112px)',}} className={classes.wastrelContainer}>
           <Container maxWidth="sm">
               <Grid container style={{width:"auto", margin:"0 auto"}} spacing={1} className={classes.accountsGrid}>
           {accountValues.remuneratorSpendings.map((wastrel,i,all) =>
@@ -1070,7 +962,7 @@ setMonthTargetsDialogSavingAllowed(false);
         </div>
       } 
       {loggedIn && (currentView === "entries") && 
-        <div style={{ height: 'calc(90vh-56px)' }}>
+        <div style={{ height: 'calc(90vh-112px)' }}>
           <AutoSizer>
             {({height, width}) => (
 
