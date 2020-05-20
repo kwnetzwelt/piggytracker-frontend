@@ -1,7 +1,10 @@
 var ReleaseNotes = {
     
     "versions": [
-
+        {
+            "version":"1.1",
+            "content":"<ul><li>Added Import/Export function in .csv-format</li><li>Fixed multiple layout issues</li><li>Reworked Login-Screen</li></ul>"
+        },
         {
             "version":"1.0",
             "content":"This is the initial release. <br />" +
