@@ -161,10 +161,22 @@ const useStyles = makeStyles((theme) => ({
     backgroundColor:blueGrey[50]
   },
   appBar: {
-    position: 'sticky',
+    position: 'fixed',
     backgroundColor: theme.primary
   },
   table : {
+    marginTop:"56px",
+    marginBottom:"60px"
+  },
+  accountsGrid : {
+    flexGrow: 1,
+    marginTop:"56px",
+    marginBottom:"60px"
+  },
+  wastrelContainer: {
+
+    marginTop:"66px",
+    marginBottom:"60px"
   },
   
   fab: {
@@ -174,10 +186,6 @@ const useStyles = makeStyles((theme) => ({
   },
   title: {
     flexGrow: 1,
-  },
-  accountsGrid : {
-    flexGrow: 1,
-    marginBottom:64
   },
   critical: {
     color: red[400],
@@ -939,7 +947,7 @@ setMonthTargetsDialogSavingAllowed(false);
       }   
       {loggedIn && currentView === "wastrel" && 
         
-        <div style={{ height: 'calc(90vh-56px)',paddingTop: 10 }}>
+        <div style={{ height: 'calc(90vh-112px)',}} className={classes.wastrelContainer}>
           <Container maxWidth="sm">
               <Grid container style={{width:"auto", margin:"0 auto"}} spacing={1} className={classes.accountsGrid}>
           {accountValues.remuneratorSpendings.map((wastrel,i,all) =>
@@ -954,7 +962,7 @@ setMonthTargetsDialogSavingAllowed(false);
         </div>
       } 
       {loggedIn && (currentView === "entries") && 
-        <div style={{ height: 'calc(90vh-56px)' }}>
+        <div style={{ height: 'calc(90vh-112px)' }}>
           <AutoSizer>
             {({height, width}) => (
 
