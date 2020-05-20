@@ -12,7 +12,7 @@ import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemText from '@material-ui/core/ListItemText';
 import ListSubheader from '@material-ui/core/ListSubheader';
-import { IconButton,  Drawer, Divider, Typography, useTheme, ListItemAvatar, Avatar, ListItemSecondaryAction, MenuItem, Menu, Snackbar, Button } from '@material-ui/core';
+import { IconButton,  Drawer, Divider, Typography, useTheme, ListItemAvatar, Avatar, ListItemSecondaryAction, MenuItem, Menu, Snackbar } from '@material-ui/core';
 import API from './API';
 import Axios from 'axios';
 import MuiAlert from '@material-ui/lab/Alert';
@@ -31,8 +31,7 @@ export default function MainDrawer(props) {
 
   React.useEffect(
     () => {
-      console.log("changed " + props.isOpen);
-      setState({ ...state, isOpen: props.isOpen, user: props.user });
+      setState( s => ({...s, isOpen: props.isOpen, user: props.user}));
     }
   ,[props]);
   const [state, setState] = React.useState({

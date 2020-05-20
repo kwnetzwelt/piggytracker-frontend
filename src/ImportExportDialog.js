@@ -7,11 +7,7 @@ import CloudUploadIcon from '@material-ui/icons/CloudUpload';
 import CloudDownloadIcon from '@material-ui/icons/CloudDownload';
 import { FilePicker } from 'react-file-picker';
 
-import List from '@material-ui/core/List';
-import ListItem from '@material-ui/core/ListItem';
-import ListItemText from '@material-ui/core/ListItemText';
-import ListSubheader from '@material-ui/core/ListSubheader';
-import { IconButton,  Drawer, Divider, Typography, useTheme, ListItemAvatar, Avatar, ListItemSecondaryAction, MenuItem, Menu, Snackbar, Button, useMediaQuery, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, FormControlLabel, Checkbox } from '@material-ui/core';
+import { IconButton,  Divider, Typography, useTheme, Snackbar, Button, useMediaQuery, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, FormControlLabel, Checkbox } from '@material-ui/core';
 import API from './API';
 import Axios from 'axios';
 import MuiAlert from '@material-ui/lab/Alert';
@@ -30,26 +26,23 @@ export default function ImportExportDialog(props) {
     
     React.useEffect(
         () => {
-            console.log("changed " + props.open);
-            setState({ ...state, open: props.open, user: props.user });
+            setState(s => ({...s, open: props.open, user: props.user}));
         }
-        ,[props]);
-        const [state, setState] = React.useState({
-            open : props.open ,
-            user : props.user,
-            info: "",
-            infoText: "",
-            deleteExistingOnImport: false,
-            deleteExistingOnExport: false,
-        });
+        ,[props]
+    );
+
+    const [state, setState] = React.useState({
+        open : props.open ,
+        user : props.user,
+        info: "",
+        infoText: "",
+        deleteExistingOnImport: false,
+    });
         
         const handleDeleteExistingOnImport = (value) => {
             setState({...state, deleteExistingOnImport : value.currentTarget.checked});
         };
 
-        const handleDeleteExistingOnExport = (value) => {
-            setState({...state, deleteExistingOnExport : value.currentTarget.checked});
-        };
         const handleClose = (event) => {
             if (event.type === 'keydown' && (event.key === 'Tab' || event.key === 'Shift')) {
                 return;
@@ -100,20 +93,6 @@ export default function ImportExportDialog(props) {
             });
         }
 
-        const uploadImage = () => {
-            Axios({method:"POST",url : API.apiEndpoint + "/images/" + state.elementType.toLowerCase(), headers: API.getAuthHeader()}).then( result => {
-                
-                setState({...state, info: "success", infoText:"Upload succeeded!", elementMenuOpen: null});
-                console.log(JSON.stringify(result));
-            }).catch((e) => {
-                setState({...state, uploadInfo: "error", uploadInfoText:"Upload failed!",elementMenuOpen: null});
-            }).finally(() =>{
-                
-            });
-            
-            
-        }
-        
         const handleInfoClose = (e, reason) => {
             if (reason === 'clickaway') {
               return;

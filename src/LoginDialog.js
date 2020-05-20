@@ -2,10 +2,10 @@ import React from 'react';
 import GoogleLogin from 'react-google-login';
 import { makeStyles } from '@material-ui/core/styles';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { fab, faGoogle } from '@fortawesome/free-brands-svg-icons'
+import { faGoogle } from '@fortawesome/free-brands-svg-icons'
 
 import axios from 'axios';
-import { IconButton, Divider, Typography, useTheme, Avatar, MenuItem, Menu, Snackbar, Button, useMediaQuery, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, FormControlLabel, Checkbox, TextField, Icon, Paper, Fab } from '@material-ui/core';
+import { IconButton, Divider, Typography, useTheme, Snackbar, Button, useMediaQuery, Dialog, DialogTitle, DialogContent, TextField, Paper} from '@material-ui/core';
 import MuiAlert from '@material-ui/lab/Alert';
 import API from './API';
 import Config from './Config';
@@ -23,7 +23,8 @@ export default function LoginDialog(props) {
     React.useEffect(
         () => {
             console.log("changed " + props.open);
-            setState({ ...state, open: props.open, submittingLogin: false });
+            setState(s => ({...s, open: props.open, submittingLogin: false, loginComplete: props.loginComplete}));
+            
         }
         ,[props]);
         const [state, setState] = React.useState({
@@ -49,7 +50,7 @@ export default function LoginDialog(props) {
                 
                 API.storeAuthToken(result.data.token);
                 if(state.loginComplete)
-                state.loginComplete(result.data.userProfile);
+                    state.loginComplete(result.data.userProfile);
                 
             }).catch(error => {
                 console.log(JSON.stringify(error));
