@@ -68,12 +68,11 @@ export default function LoginDialog(props) {
               username: state.loginUsername,
               password: state.loginPassword
             };
-            console.log(JSON.stringify(body));
             axios.post(API.apiEndpoint + '/login',body
             ).then(result => {
                 setState({...state, submittingLogin: false, info:"success", infoText:"logged in!"});
                 API.storeAuthToken(result.data.token);
-                state.loginComplete();
+                state.loginComplete(result.data.userProfile);
             }).catch(error => {
                 console.log(JSON.stringify(error));
                 if(error.response)
@@ -197,7 +196,7 @@ export default function LoginDialog(props) {
                 
                 onSuccess={onSignIn}
                 onFailure={onSignInFailed}
-                isSignedIn={true}
+                
                 cookiePolicy={'single_host_origin'}
                 render={renderProps => (
                     <IconButton className={classes.googleButton} onClick={renderProps.onClick} disabled={renderProps.disabled} >
