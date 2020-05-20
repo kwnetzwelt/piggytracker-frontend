@@ -1,6 +1,6 @@
 const Config =class {
 
-    static googleClientId = "$(GOOGLE_CLIENT_ID)";
+    static googleClientId = "(GOOGLE_CLIENT_ID)";
 
     /** The API Endpoint (backend) to connect to */
     static apiEndpoint = "https://api.piggytracker.org";
