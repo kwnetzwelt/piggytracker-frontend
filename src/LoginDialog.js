@@ -23,7 +23,7 @@ export default function LoginDialog(props) {
     React.useEffect(
         () => {
             console.log("changed " + props.open);
-            setState({ ...state, open: props.open });
+            setState({ ...state, open: props.open, submittingLogin: false });
         }
         ,[props]);
         const [state, setState] = React.useState({
@@ -33,6 +33,7 @@ export default function LoginDialog(props) {
             infoText: "",
             loginUsername: "",
             loginPassword: "",
+            submittingLogin: false,
         });
         const onSignIn = (googleUser) => {
             const profile = googleUser.getBasicProfile();
@@ -179,7 +180,7 @@ export default function LoginDialog(props) {
         />
 
         <div style={{display:"flex", justifyContent:"flex-end"}}>
-        <Button className={classes.loginButton} onClick={submitLoginDialog} variant="contained" color="primary" >{"Login"}</Button>
+        <Button disabled={state.submittingLogin} className={classes.loginButton} onClick={submitLoginDialog} variant="contained" color="primary" >{"Login"}</Button>
         </div>
     </Paper>
             </form>
