@@ -1,4 +1,4 @@
-# Frontend for Piggi
+# Piggytracker frontend
 
 Frontend for piggytracker. See https://www.piggytracker.org for more information. 
 
