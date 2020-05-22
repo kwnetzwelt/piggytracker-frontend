@@ -1,5 +1,7 @@
 # Frontend for Piggi
 
+Frontend for piggytracker. See https://www.piggytracker.org for more information. 
+
 This app was created using create-react-app and uses material-ui extensively. It requires a backend-service to connect to. 
 
 This project helps to manage tracking your monthly expenses within your household. You can add an entry (something you purchased or a bill you received and payed). Each entry contains a date, value, category, remunerator (who paid for it) and a comment. Edit entries by tapping on them in the list. 
