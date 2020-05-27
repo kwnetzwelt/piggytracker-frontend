@@ -219,6 +219,7 @@ function App() {
   const classes = useStyles();
   
   useEffect(() => {
+    setViewIndex(0);
     restoreLoginState();
     return () => {
     }
@@ -464,8 +465,18 @@ setMonthTargetsDialogSavingAllowed(false);
   const [loggedIn, setLoggedIn] = useState(false);
   const views = ["entries","accounts","wastrel"];
   const [currentView, setCurrentView] = useState("entries");
+
+  const setViewIndex = (index) => {
+
+    setValue(index);
+    setCurrentView(views[index]);
+  };
+
+
   const avatarDisplay = createRef();
   
+
+
   const sortingDataRegExp = new RegExp(/[-]/g);
   const sortDataEntries = () => {
     dataEntries.sort( (e1,e2) => {
@@ -1003,7 +1014,7 @@ setMonthTargetsDialogSavingAllowed(false);
 
                     {accountValues.categoryMonths.map((catMonth) => 
                 <Grid key={'month-'+ catMonth.tid} item xs>
-                  <MonthCard monthCategories={catMonth} accounts={accountValues} menuToggle={(e,tid) =>{catMonthOptionsMenuToggle(e,tid);}} />
+                  <MonthCard monthCategories={catMonth} accounts={accountValues} user={userProfile} menuToggle={(e,tid) =>{catMonthOptionsMenuToggle(e,tid);}} />
                 </Grid>
                     )}
           </Grid>
@@ -1014,9 +1025,8 @@ setMonthTargetsDialogSavingAllowed(false);
 <BottomNavigation
   value={value}
   onChange={(event, newValue) => {
-    setValue(newValue);
-    setCurrentView(views[newValue]);
-    
+    setViewIndex(newValue);
+
   }}
   showLabels
   className={classes.bottomNavigation}
