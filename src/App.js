@@ -226,8 +226,10 @@ function App() {
   },[]);
 
 
+  
   const [state, setState] = React.useState({
-    importExportDialogOpen : false
+    importExportDialogOpen : false,
+    lastRemuneratorResponse : "",
   });
   /* -- bottom navigation --*/
   
@@ -335,11 +337,12 @@ setMonthTargetsDialogSavingAllowed(false);
   const [selectedEntryId,setSelectedEntryId] = useState(null);
   const selectedEntryIdRef = React.useRef(selectedEntryId);
   
-  const updateAccounts = (entries,targets) => {
+  const updateAccounts = (entries,targets,remunerators) => {
     if(!targets)
       targets = accountValues.targets;
-
-    const newAccountValues = new Accounts(targets);
+    if(!remunerators)
+      remunerators = accountValues.remuneratorSpendings;
+    const newAccountValues = new Accounts(targets, remunerators);
     entries.forEach(element => {
       newAccountValues.addEntry(element);
     });
@@ -510,60 +513,71 @@ setMonthTargetsDialogSavingAllowed(false);
 
   const updateRate = 2500;
   let lastUpdateRun = 0;
-  const runDataUpdate = () => {
+  const runDataUpdate = async () => {
     
     if(selectedEntryIdRef.current)
     {
       scheduleDataUpdate();
       return;
     }
-
-    axios({method:"GET",url : apiEndpoint + "/targets", headers : API.getAuthHeader()}).then( targetsResults => {
-      const targetsData = targetsResults.data.data; // data
-      axios({method:"GET",url : apiEndpoint + "/updates",params: {updatedMillisecondsAgo:lastUpdateRun+500}, headers: API.getAuthHeader()}).then( result => {
-        const changedEntries = result.data.data;
-        let oneChanged = false;
-        for (let index = 0; index < changedEntries.length; index++) {
-          const element = changedEntries[index];
-          const e = dataEntries.findIndex((e) => e._id === element._id);
-          if(e === -1)
-          {
-            if(element.deleted)
+    var oneChanged = false;
+    
+    axios({method:"GET", url: apiEndpoint + "/remunerator", headers : API.getAuthHeader()}).then( remuneratorResults =>{
+      var remuneratorData = remuneratorResults.data.data;
+      // FIXME
+      oneChanged = true;
+      
+      axios({method:"GET",url : apiEndpoint + "/targets", headers : API.getAuthHeader()}).then( targetsResults => {
+        const targetsData = targetsResults.data.data; // data
+        axios({method:"GET",url : apiEndpoint + "/updates",params: {updatedMillisecondsAgo:lastUpdateRun+500}, headers: API.getAuthHeader()}).then( result => {
+          const changedEntries = result.data.data;
+          for (let index = 0; index < changedEntries.length; index++) {
+            const element = changedEntries[index];
+            const e = dataEntries.findIndex((e) => e._id === element._id);
+            if(e === -1)
             {
-              // we already deleted that locally
-            }else
-            {
-              // new entry
-              oneChanged = true;
-              dataEntries.push(element);
+              if(element.deleted)
+              {
+                // we already deleted that locally
+              }else
+              {
+                // new entry
+                oneChanged = true;
+                dataEntries.push(element);
+              }
             }
-          }
-          else
-          {
-            if(element.deleted)
-              dataEntries.splice(e,1);
             else
-              dataEntries.splice(e,1,element);
-            oneChanged = true;
+            {
+              if(element.deleted)
+                dataEntries.splice(e,1);
+              else
+                dataEntries.splice(e,1,element);
+              oneChanged = true;
+            }
+            console.log(JSON.stringify(element));
           }
-          console.log(JSON.stringify(element));
-        }
-        
-        if(oneChanged)
-        {
-          sortDataEntries();
-          updateAccounts(dataEntries,targetsData);
-        }
-        lastUpdateRun = 0;
-        scheduleDataUpdate();
+          
+          if(oneChanged)
+          {
+            sortDataEntries();
+            updateAccounts(dataEntries,targetsData,remuneratorData);
+          }
+          lastUpdateRun = 0;
+          scheduleDataUpdate();
+        }).catch((error) => {
+          if(error.response.status === 401)
+            return;
+          scheduleDataUpdate();
+
+        });
       }).catch((error) => {
+        
         if(error.response.status === 401)
           return;
         scheduleDataUpdate();
-
       });
     }).catch((error) => {
-      
+        
       if(error.response.status === 401)
         return;
       scheduleDataUpdate();
@@ -578,6 +592,8 @@ setMonthTargetsDialogSavingAllowed(false);
   }
 
   const fetchAllData = (pageSize,page) => {
+    axios({method:"GET", url: apiEndpoint + "/remunerator", headers : API.getAuthHeader()}).then( remuneratorResults =>{
+      var remuneratorData = remuneratorResults.data.data;
       axios({method:"GET",url : apiEndpoint + "/targets", headers : API.getAuthHeader()}).then( targetsResults => {
         var targetsData = targetsResults.data.data; // data
         axios({method:"GET",url : apiEndpoint + "/bills",params: {perPage:pageSize,page:page+1}, headers: API.getAuthHeader()}).then( result => {
@@ -595,11 +611,12 @@ setMonthTargetsDialogSavingAllowed(false);
           {
             
             sortDataEntries();
-            updateAccounts(dataEntries,targetsData);
+            updateAccounts(dataEntries,targetsData, remuneratorData);
             scheduleDataUpdate();
           }
         });
       });
+    });
   }
 
   const logout = () => {
@@ -964,7 +981,7 @@ setMonthTargetsDialogSavingAllowed(false);
           <Container maxWidth="sm">
               <Grid container style={{width:"auto", margin:"0 auto"}} spacing={1} className={classes.accountsGrid}>
           {accountValues.remuneratorSpendings.map((wastrel,i,all) =>
-              <Grid item xs={12}>
+              <Grid item key={i} xs={12}>
                 <WastrelCard wastrel={wastrel} user={userProfile} next={(all.length > (i+1))?all[i+1]:undefined} item />
               </Grid>
               

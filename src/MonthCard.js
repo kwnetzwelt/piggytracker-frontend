@@ -14,7 +14,6 @@ import {red,blueGrey} from '@material-ui/core/colors';
  */
 export default function MonthCard(props) {
   
-  const dateTimeFormatMonthName = Intl.DateTimeFormat(Config.locale,Config.dateTimeFormatMonthName);
   
   const ref = React.createRef();
 
@@ -42,27 +41,27 @@ export default function MonthCard(props) {
 
   React.useEffect(
     () => {
-
+      const dateTimeFormatMonthName = Intl.DateTimeFormat(Config.locale,Config.dateTimeFormatMonthName);
+  
       if(props.monthCategories.month === new Date().getMonth())
       {
         console.log("scrolling. ...");
         ref.current.scrollIntoView({behavior: "smooth", block: "start", inline: "nearest"});
       }
+      
       const targetValueMonth = props.accounts.getTargetValueMonth(props.monthCategories);
       const categories = [];
-      props.accounts.categories.map((entry) => {
+      props.accounts.categories.forEach((entry) => {
         const targetInCategory = props.accounts.getTargetValue(props.monthCategories.tid ,  entry);
         const status = props.accounts.getTargetStatus(props.monthCategories.tid, entry,props.monthCategories.getValueInCategory(entry) ?? 0);
         const total = props.monthCategories.getValueInCategory(entry) ?? 0;
-        const target = props.accounts.getTargetValue(props.monthCategories.tid ,  entry);
         const category = {
           critical : status === "CRIT",
           name: entry,
           icon: API.getCategoryUrl(props.user.groupId, entry),
-          target: targetInCategory,
           total: Config.toCurrencyValue(total),
-          target: Config.toCurrencyValue(target),
-          whatsLeft: Config.toCurrencyValue(target-total)
+          target: Config.toCurrencyValue(targetInCategory),
+          whatsLeft: Config.toCurrencyValue(targetInCategory-total)
         }
         categories.push(category);
       });
