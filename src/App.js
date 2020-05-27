@@ -55,6 +55,7 @@ import WastrelCard from './WastrelCard';
 import MainDrawer from './MainDrawer';
 import ReleaseNotes from './ReleaseNotes';
 import LoginDialog from './LoginDialog';
+import Version from './Version';
 
 const theme = createMuiTheme({
   
@@ -941,7 +942,7 @@ setMonthTargetsDialogSavingAllowed(false);
                 }}/>             
                  </picture>
                 <Typography variant="overline" display="block" gutterBottom className={classes.versionString}>
-                version: {process.env.REACT_APP_CURRENT_GIT_SHA}
+                <Version />
                 </Typography>
             
         </Container>
@@ -1027,7 +1028,7 @@ setMonthTargetsDialogSavingAllowed(false);
   <BottomNavigationAction label="Months" icon={<AccountBalanceIcon />} />
   <BottomNavigationAction label="Wastrel" icon={<EmojiEventsIcon />} />
 </BottomNavigation>
-      {loggedIn &&
+      {loggedIn && (currentView === "entries") &&
         <Fab color="primary" aria-label="add" className={classes.fab} onClick={(e) => showAddEntryDialog()}>
           <AddIcon />
         </Fab>

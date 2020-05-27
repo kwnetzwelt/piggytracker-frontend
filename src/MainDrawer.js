@@ -16,6 +16,7 @@ import { IconButton,  Drawer, Divider, Typography, useTheme, ListItemAvatar, Ava
 import API from './API';
 import Axios from 'axios';
 import MuiAlert from '@material-ui/lab/Alert';
+import Version from './Version';
 
 
 
@@ -210,7 +211,7 @@ export default function MainDrawer(props) {
             </List>
             <Typography display="block" className={classes.vspacer}></Typography>
             <Typography variant="overline" display="block" gutterBottom className={classes.versionString}>
-            version: {process.env.REACT_APP_CURRENT_GIT_SHA}
+            version: <Version />
             </Typography>
           </Drawer>
           <Menu
