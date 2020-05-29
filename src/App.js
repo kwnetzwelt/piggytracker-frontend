@@ -423,7 +423,7 @@ setMonthTargetsDialogSavingAllowed(false);
     var entry= 
     {
       date : entryDate.value.toISOString().substr(0,10),
-      value : entryValue.value,
+      value : parseFloat(entryValue.value),
       category:entryCategory.value.toString(),
       remunerator:entryRemunerator.value.toString(),
       info:entryInfo.value.toString()
@@ -846,7 +846,7 @@ setMonthTargetsDialogSavingAllowed(false);
           variant="filled"
           onFocus={(e) => {if(parseInt(entryValue.value) === 0) e.target.select();}}
           value={entryValue.value}
-          onChange={(e) => setEntryValue({value:ensureMonetaryValue(e.target.value),error:null})}
+          onChange={(e) => setEntryValue({value:e.target.value,error:null})}
         />
         
         <FormControl className={classes.formControl }>
