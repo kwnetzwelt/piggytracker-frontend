@@ -3,7 +3,7 @@
     "versions": [
         {
             "version":"1.2",
-            "content":"<ul><li>Add Entry button is only visible in Entries view</li><li>Display human readable version</li><li>Moved Release Notes</li><li>Changelog is now available as an md-file</li><li>Refactoring Month-Card</li><li>It's now possible to show what is left in a month. Simply by tapping the card. </li><li>Fixed: Month card was not showing target miss (red highlight was missing)</li><li>Fixed: Entries view was not selected per default. </li></ul>"
+            "content":"<ul><li>Add Entry button is only visible in Entries view</li><li>Display human readable version</li><li>Moved Release Notes</li><li>Changelog is now available as an md-file</li><li>Refactoring Month-Card</li><li>It's now possible to show what is left in a month. Simply by tapping the card. </li><li>Fixed: Month card was not showing target miss (red highlight was missing)</li><li>Fixed: Entries view was not selected per default. </li><li>Wastrel offset can be edited</li></ul>"
         },
         {
             "version":"1.1",
