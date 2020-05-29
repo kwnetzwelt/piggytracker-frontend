@@ -4,7 +4,7 @@ import { makeStyles } from '@material-ui/core/styles';
 import GitHubIcon from '@material-ui/icons/GitHub';
 import { DialogActions, Dialog, Typography, useTheme, useMediaQuery, DialogContent, DialogTitle, Button, FormControlLabel, Checkbox, IconButton, ListItem, List, Divider } from '@material-ui/core';
 
-import releaseNotesContent from './ReleaseNotesContent';
+import releaseNotesContent from './ReleaseNotes.alias.json';
 /**
  * 
  * @param {releaseNotes} props 

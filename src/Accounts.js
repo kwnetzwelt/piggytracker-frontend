@@ -79,10 +79,12 @@ export class MonthCategories {
 }
 
 export class Wastrel {
-    constructor(remunerator)
+    
+    constructor(remunerator, value=0, offset=-1)
     {
         this.remunerator = remunerator;
-        this.value = 0;
+        this.value = value;
+        this.offset = offset;
     }
 }
 export class Target {
@@ -117,7 +119,7 @@ export class Target {
 }
 
 export class Accounts {
-    constructor(targets){
+    constructor(targets,remunerators){
         /**
          * @property {Target[]}
          */
@@ -134,6 +136,14 @@ export class Accounts {
          * @property {Wastrel[]}
          */
         this.remuneratorSpendings = [];
+        if(remunerators)
+        {
+            for (let index = 0; index < remunerators.length; index++) {
+                const element = remunerators[index];
+                this.remuneratorSpendings.push(new Wastrel(element.name, element.value ? element.value : 0, element.offset));
+            }
+        }
+
         /**
          * @property {CategoryAccount[]}
          */
@@ -228,6 +238,23 @@ export class Accounts {
 
         }
     }
+    setRemunerators(data) {
+        for (let index = 0; index < data.length; index++) {
+            const entry = data[index];
+            
+            var wastrel = this.remuneratorSpendings.find((e) => e.remunerator === entry.name);
+            if(!wastrel)
+            {
+                wastrel = new Wastrel();
+                wastrel.remunerator = entry.name;
+                this.remuneratorSpendings.push(wastrel);
+            }
+            wastrel.offset = entry.offset;
+        }
+        // sort wastrels by value
+        this.sortWastrels();
+    }
+
     getTargetForEditing (tid) {
         var target = this.targets.find((e) => e.tid === tid);
         var targetToEdit = new Target({tid:tid,totals:[]});
@@ -256,6 +283,9 @@ export class Accounts {
         this.categoryMonths.push(catMonth);
         this.categoryMonths.sort((m1,m2) => m1.tid < m2.tid ? 1 : -1);
     }
+    sortWastrels() {
+        this.remuneratorSpendings.sort((a,b) => ((b.value - b.offset) - (a.value - a.offset)));
+    }
     addEntry (entry) {
       var found = false;
       
@@ -267,7 +297,8 @@ export class Accounts {
         }
         wastrel.value += entry.value;
         // sort wastrels by value
-        this.remuneratorSpendings.sort((a,b) => b.value - a.value);
+        this.sortWastrels();
+        
       
 
         found = false;

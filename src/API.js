@@ -30,7 +30,7 @@ const API =class {
     static urlify =(value) => String(value).toLowerCase().replace(" ","-");
     static getCategoryUrl = (userId, category) => Config.staticAssets +"/uploads/" + userId + "-c-" + this.urlify(category);
     static getRemuneratorUrl = (userId, fullName) => Config.staticAssets + "/uploads/" + userId + "-r-" + this.urlify(fullName);
-    static getMonthImageUrl = (monthCategories) => this.staticAssets + "/month/" + (monthCategories.month).toString().padStart(2,"0") + ".jpg"
+    static getMonthImageUrl = (monthCategories) => Config.staticAssets + "/month/" + (monthCategories.month).toString().padStart(2,"0") + ".jpg";
     static getUserInitials = (fullname) => {
     
         var initials = fullname.split(' ');
