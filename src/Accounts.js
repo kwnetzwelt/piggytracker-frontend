@@ -284,7 +284,7 @@ export class Accounts {
         this.categoryMonths.sort((m1,m2) => m1.tid < m2.tid ? 1 : -1);
     }
     sortWastrels() {
-        this.remuneratorSpendings.sort((a,b) => ((b.value - b.offset) - (a.value - a.offset)));
+        this.remuneratorSpendings.sort((a,b) => ((b.value + b.offset) - (a.value + a.offset)));
     }
     addEntry (entry) {
       var found = false;
