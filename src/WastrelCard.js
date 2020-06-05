@@ -95,7 +95,7 @@ export default function WastrelCard(props) {
             </Typography>
             {state.next && 
             <Typography className={classes.wastrelDeltaText}>
-                {Config.toCurrencyValue(state.wastrel.value - state.next.value)} too much!
+                {Config.toCurrencyValue(parseFloat(state.wastrel.value) + parseFloat(state.wastrel.offset) - (parseFloat(state.next.value) + parseFloat(state.next.offset)))} too much!
             </Typography>
             }
         
