@@ -2,6 +2,7 @@ import Config from './Config';
 
 const API =class {
     static apiEndpoint = Config.apiEndpoint + Config.apiEndpointPrefixRoute;
+    static ssoEndpoint = Config.apiEndpoint + "/auth/sso";
 
     static getStoredAuthToken = () => {
       return localStorage.getItem('id_token');
