@@ -15,11 +15,24 @@ import Config from './Config';
  * @param {open, loginComplete } props 
  */
 export default function LoginDialog(props) {
-    
+    let popup;
     function Alert(props) {
         return <MuiAlert elevation={6} variant="filled" {...props} />;
     }
-    
+    React.useEffect(() => {
+        // Run only once
+        window.addEventListener('message', (e) => {
+            if (e.data && e.data.token && e.data.userProfile) {
+                API.storeAuthToken(e.data.token);
+                if(state.loginComplete) {
+                    state.loginComplete(e.data.userProfile);
+                }
+                if (popup) {
+                    popup.close();
+                }
+            }
+        });
+    });
     React.useEffect(
         () => {
             console.log("changed " + props.open);
@@ -59,6 +72,9 @@ export default function LoginDialog(props) {
                 else
                     setState({...state, submittingLogin: false, info:"error", infoText:error.message});
             });
+        }
+        const startSso = () => {
+            popup = window.open(API.ssoEndpoint, 'ssoauth', 'width=350,height=500');
         }
         const submitLoginDialog = (e) => {
             setState({...state, submittingLogin: true});
@@ -184,6 +200,14 @@ export default function LoginDialog(props) {
         </div>
     </Paper>
             </form>
+            <div style={{display:"flex",justifyContent:"center"}}>
+            <Divider className={classes.divider} />
+            <Typography flexGrow={1}>{"or"}</Typography>
+            <Divider className={classes.divider} />
+            </div>
+
+            <Button onClick={startSso}>Central Login</Button>
+
             <div style={{display:"flex",justifyContent:"center"}}>
             <Divider className={classes.divider} />
             <Typography flexGrow={1}>{"or"}</Typography>
