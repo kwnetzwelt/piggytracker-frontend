@@ -39,7 +39,7 @@ export default function LoginDialog(props) {
             setState(s => ({...s, open: props.open, submittingLogin: false, loginComplete: props.loginComplete}));
             
         }
-        ,[props]);
+        ,[props.open, props.submittingLogin]);
         const [state, setState] = React.useState({
             open : props.open ,
             loginComplete: null,
